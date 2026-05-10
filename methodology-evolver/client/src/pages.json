@@ -1,0 +1,184 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "首页",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#F5F7FA",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/card/index",
+      "style": {
+        "navigationBarTitleText": "卡片库",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/sop/index",
+      "style": {
+        "navigationBarTitleText": "SOP模板",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/review/index",
+      "style": {
+        "navigationBarTitleText": "复盘中心",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/profile/index",
+      "style": {
+        "navigationBarTitleText": "个人中心",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/card/create",
+      "style": {
+        "navigationBarTitleText": "新建动作",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/card/detail",
+      "style": {
+        "navigationBarTitleText": "动作详情",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/card/edit",
+      "style": {
+        "navigationBarTitleText": "编辑动作",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/card/migrate",
+      "style": {
+        "navigationBarTitleText": "迁移卡片",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/law/create",
+      "style": {
+        "navigationBarTitleText": "新建规律",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/law/detail",
+      "style": {
+        "navigationBarTitleText": "规律详情",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/law/edit",
+      "style": {
+        "navigationBarTitleText": "编辑规律",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/review/detail",
+      "style": {
+        "navigationBarTitleText": "复盘详情",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/review/edit",
+      "style": {
+        "navigationBarTitleText": "编辑复盘",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/category/manage",
+      "style": {
+        "navigationBarTitleText": "分类管理",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "方法论进化器",
+    "navigationBarBackgroundColor": "#162238",
+    "backgroundColor": "#F5F7FA"
+  },
+  "tabBar": {
+    "color": "#9CA3AF",
+    "selectedColor": "#162238",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tabbar/home.png",
+        "selectedIconPath": "static/tabbar/home-active.png"
+      },
+      {
+        "pagePath": "pages/card/index",
+        "text": "卡片库",
+        "iconPath": "static/tabbar/card.png",
+        "selectedIconPath": "static/tabbar/card-active.png"
+      },
+      {
+        "pagePath": "pages/sop/index",
+        "text": "SOP",
+        "iconPath": "static/tabbar/sop.png",
+        "selectedIconPath": "static/tabbar/sop-active.png"
+      },
+      {
+        "pagePath": "pages/review/index",
+        "text": "复盘",
+        "iconPath": "static/tabbar/review.png",
+        "selectedIconPath": "static/tabbar/review-active.png"
+      },
+      {
+        "pagePath": "pages/profile/index",
+        "text": "我的",
+        "iconPath": "static/tabbar/profile.png",
+        "selectedIconPath": "static/tabbar/profile-active.png"
+      }
+    ]
+  },
+  "easycom": {
+    "autoscan": true,
+    "custom": {
+      "^u-": "@/components/u-"
+    }
+  }
+}

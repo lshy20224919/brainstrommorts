@@ -1,0 +1,42 @@
+{
+  "name": "methodology-evolver",
+  "version": "1.0.0",
+  "description": "方法论进化器 - 个人方法论沉淀工具",
+  "main": "main.js",
+  "scripts": {
+    "dev:mp-weixin": "cross-env NODE_ENV=development UNI_PLATFORM=mp-weixin vue-cli-service uni:dev --watch",
+    "build:mp-weixin": "cross-env NODE_ENV=production UNI_PLATFORM=mp-weixin vue-cli-service uni:build",
+    "dev:h5": "vue-cli-service uni:dev --watch",
+    "build:h5": "vue-cli-service uni:build"
+  },
+  "dependencies": {
+    "@dcloudio/uni-app": "^2.0.0",
+    "@dcloudio/uni-h5": "^2.0.0",
+    "@dcloudio/uni-mp-weixin": "^2.0.0",
+    "vue": "^2.6.14",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@dcloudio/vue-cli-plugin-uni": "^2.0.0",
+    "@dcloudio/webpack-uni-mp-loader": "^2.0.0",
+    "@dcloudio/webpack-uni-pages-loader": "^2.0.0",
+    "@vue/cli-service": "^4.5.19",
+    "@vue/cli-shared-utils": "^4.5.19",
+    "@vue/component-compiler-utils": "^3.3.0",
+    "cross-env": "^7.0.3",
+    "css-loader": "^3.5.3",
+    "mini-types": "^0.1.1",
+    "miniprogram-api-typings": "^3.12.2",
+    "sass": "^1.69.5",
+    "sass-loader": "^10.4.1",
+    "style-loader": "^3.3.3",
+    "vue-loader": "^15.11.1",
+    "vue-style-loader": "^4.1.3",
+    "vue-template-compiler": "^2.6.14",
+    "webpack": "^4.46.0"
+  },
+  "browserslist": [
+    "Android >= 4.4",
+    "ios >= 9"
+  ]
+}

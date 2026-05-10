@@ -1,0 +1,56 @@
+/* 主题变量 */
+:root {
+  /* 浅色模式 */
+  --primary-color: #162238;
+  --bg-color: #F5F7FA;
+  --card-bg: #FFFFFF;
+  --text-color: #333333;
+  --text-light: #9CA3AF;
+  --border-color: #E5E7EB;
+  --success-color: #36D399;
+  --danger-color: #F87272;
+  --warning-color: #FBBF24;
+  
+  /* 状态色 */
+  --positive-color: #36D399;
+  --negative-color: #F87272;
+  --archived-color: #9CA3AF;
+}
+
+.dark {
+  --primary-color: #162238;
+  --bg-color: #0F1724;
+  --card-bg: #1E293B;
+  --text-color: #F1F5F9;
+  --text-light: #64748B;
+  --border-color: #334155;
+  --success-color: #36D399;
+  --danger-color: #F87272;
+  --warning-color: #FBBF24;
+  
+  /* 状态色 */
+  --positive-color: #36D399;
+  --negative-color: #F87272;
+  --archived-color: #64748B;
+}
+
+/* 变量映射（SCSS） */
+$primary-color: var(--primary-color);
+$bg-color: var(--bg-color);
+$card-bg: var(--card-bg);
+$text-color: var(--text-color);
+$text-light: var(--text-light);
+$border-color: var(--border-color);
+$success-color: var(--success-color);
+$danger-color: var(--danger-color);
+$warning-color: var(--warning-color);
+$positive-color: var(--positive-color);
+$negative-color: var(--negative-color);
+$archived-color: var(--archived-color);
+
+/* 深色模式变量 */
+$dark-bg-color: #0F1724;
+$dark-card-bg: #1E293B;
+$dark-text-color: #F1F5F9;
+$dark-text-light: #64748B;
+$dark-border-color: #334155;

@@ -1,0 +1,356 @@
+// Mock数据
+const delay = (ms = 300) => new Promise(r => setTimeout(r, ms))
+
+export const mockApi = {
+  categories: [
+    { id: 1, name: '投资', icon: '📈', color: '#FF6B6B', sort_weight: 1 },
+    { id: 2, name: '健康', icon: '💪', color: '#4ECDC4', sort_weight: 2 },
+    { id: 3, name: '学习', icon: '📚', color: '#45B7D1', sort_weight: 3 },
+    { id: 4, name: '工作', icon: '💼', color: '#96CEB4', sort_weight: 4 }
+  ],
+
+  // 正确的事（action_right）
+  actions: [
+    {
+      id: 1,
+      category_id: 1,
+      name: '低吸高抛',
+      remark: '在股票低估时买入，高估时卖出',
+      subjective_weight: 9,
+      status: 0, // 0正常 1归档 2已淘汰
+      pinned: 1,
+      exec_count: 8,
+      success_count: 6,
+      fail_count: 2,
+      success_rate: 75.00,
+      last_exec_time: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString() // 3天前
+    },
+    {
+      id: 2,
+      category_id: 1,
+      name: '定投指数基金',
+      remark: '每月固定日期投入固定金额',
+      subjective_weight: 8,
+      status: 0,
+      pinned: 0,
+      exec_count: 12,
+      success_count: 10,
+      fail_count: 2,
+      success_rate: 83.33,
+      last_exec_time: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString() // 1天前
+    },
+    {
+      id: 3,
+      category_id: 2,
+      name: '晨跑5公里',
+      remark: '每天早晨跑步5公里，保持体能',
+      subjective_weight: 7,
+      status: 0,
+      pinned: 0,
+      exec_count: 45,
+      success_count: 40,
+      fail_count: 5,
+      success_rate: 88.89,
+      last_exec_time: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString() // 8天前，触发超7天提醒
+    },
+    {
+      id: 4,
+      category_id: 3,
+      name: '每日阅读30分钟',
+      remark: '睡前阅读，积累知识',
+      subjective_weight: 6,
+      status: 0,
+      pinned: 0,
+      exec_count: 20,
+      success_count: 15,
+      fail_count: 5,
+      success_rate: 75.00,
+      last_exec_time: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString() // 10天前，触发超7天提醒
+    }
+  ],
+
+  // 规律（law）law_type: 1正向 2负向
+  laws: [
+    {
+      id: 1,
+      category_id: 1,
+      related_action_id: 1,
+      law_type: 1, // 正向
+      law_desc: '行情震荡期，低吸高抛容错率更高',
+      applicable_scenes: '股票、可转债等波动性资产',
+      subjective_weight: 9,
+      trigger_count: 32,
+      status: 0,
+      popup_enabled: 1
+    },
+    {
+      id: 2,
+      category_id: 2,
+      related_action_id: 3,
+      law_type: 1, // 正向
+      law_desc: '运动习惯需要持续21天以上才能稳固',
+      applicable_scenes: '健身、习惯养成',
+      subjective_weight: 7,
+      trigger_count: 18,
+      status: 0,
+      popup_enabled: 1
+    },
+    {
+      id: 3,
+      category_id: 1,
+      related_action_id: 1,
+      law_type: 2, // 负向
+      law_desc: '情绪化追涨，大概率短期被套',
+      applicable_scenes: '股票交易',
+      subjective_weight: 8,
+      trigger_count: 6,
+      status: 0,
+      popup_enabled: 1
+    },
+    {
+      id: 4,
+      category_id: 3,
+      related_action_id: 4,
+      law_type: 2, // 负向
+      law_desc: '睡前刷手机超过30分钟，次日精力明显下降',
+      applicable_scenes: '日常作息',
+      subjective_weight: 6,
+      trigger_count: 4,
+      status: 0,
+      popup_enabled: 1
+    }
+  ],
+
+  // 执行记录
+  records: [
+    {
+      id: 1,
+      action_id: 1,
+      exec_result: 1, // 1成功 2失败
+      exec_remark: '抄底成功，盈利8%',
+      exec_time: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: 2,
+      action_id: 2,
+      exec_result: 1,
+      exec_remark: '按计划定投',
+      exec_time: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+    }
+  ],
+
+  // 待办提醒（本地状态，手动清除后当日不再显示）
+  dismissedTodos: [], // 存储已清除的待办key
+
+  // 榜单自定义数量配置
+  rankConfig: {
+    action: 5,
+    positive_law: 3,
+    negative_law: 3
+  }
+}
+
+// 计算统计数据
+const calcStats = () => {
+  const actions = mockApi.actions.filter(a => a.status === 0)
+  const positiveLaws = mockApi.laws.filter(l => l.law_type === 1 && l.status === 0)
+  const negativeLaws = mockApi.laws.filter(l => l.law_type === 2 && l.status === 0)
+
+  return {
+    action_count: actions.length,
+    action_trigger_count: actions.reduce((s, a) => s + a.exec_count, 0),
+    positive_law_count: positiveLaws.length,
+    positive_law_trigger_count: positiveLaws.reduce((s, l) => s + l.trigger_count, 0),
+    negative_law_count: negativeLaws.length,
+    negative_law_trigger_count: negativeLaws.reduce((s, l) => s + l.trigger_count, 0)
+  }
+}
+
+// 计算待办提醒
+const calcTodos = () => {
+  const todos = []
+  const dismissed = mockApi.dismissedTodos
+
+  // 待复盘（mock：固定有2个待复盘）
+  const reviewKey = 'review'
+  if (!dismissed.includes(reviewKey)) {
+    todos.push({ key: reviewKey, type: 'review', count: 2 })
+  }
+
+  // 迁移推荐（mock：固定有1条推荐）
+  const migrateKey = 'migrate'
+  if (!dismissed.includes(migrateKey)) {
+    todos.push({ key: migrateKey, type: 'migrate', count: 1 })
+  }
+
+  // 超7天未执行的正确的事
+  const now = Date.now()
+  mockApi.actions
+    .filter(a => a.status === 0)
+    .forEach(a => {
+      const key = `overdue_${a.id}`
+      if (dismissed.includes(key)) return
+      if (!a.last_exec_time) {
+        todos.push({ key, type: 'overdue', action: a, days: null })
+        return
+      }
+      const days = Math.floor((now - new Date(a.last_exec_time).getTime()) / (1000 * 60 * 60 * 24))
+      if (days >= 7) {
+        todos.push({ key, type: 'overdue', action: a, days })
+      }
+    })
+
+  return todos
+}
+
+// 计算榜单
+const calcRanking = (type) => {
+  if (type === 'action') {
+    return [...mockApi.actions]
+      .filter(a => a.status === 0)
+      .sort((a, b) => b.subjective_weight - a.subjective_weight)
+      .slice(0, mockApi.rankConfig.action)
+  }
+  if (type === 'positive_law') {
+    return [...mockApi.laws]
+      .filter(l => l.law_type === 1 && l.status === 0)
+      .sort((a, b) => b.subjective_weight - a.subjective_weight)
+      .slice(0, mockApi.rankConfig.positive_law)
+  }
+  if (type === 'negative_law') {
+    return [...mockApi.laws]
+      .filter(l => l.law_type === 2 && l.status === 0)
+      .sort((a, b) => b.subjective_weight - a.subjective_weight)
+      .slice(0, mockApi.rankConfig.negative_law)
+  }
+  return []
+}
+
+// API methods
+export const api = {
+  // 分类
+  getCategories: async () => {
+    await delay()
+    return mockApi.categories
+  },
+
+  // 正确的事
+  getActions: async (params = {}) => {
+    await delay()
+    let list = mockApi.actions
+    if (params.category_id) list = list.filter(a => a.category_id === params.category_id)
+    if (params.status !== undefined) list = list.filter(a => a.status === params.status)
+    return list
+  },
+  getAction: async (id) => {
+    await delay()
+    return mockApi.actions.find(a => a.id === id)
+  },
+  createAction: async (data) => {
+    await delay()
+    const action = {
+      id: Date.now(),
+      exec_count: 0,
+      success_count: 0,
+      fail_count: 0,
+      success_rate: null,
+      status: 0,
+      pinned: 0,
+      last_exec_time: null,
+      ...data
+    }
+    mockApi.actions.push(action)
+    return action
+  },
+  checkin: async (actionId, data) => {
+    await delay()
+    const record = {
+      id: Date.now(),
+      action_id: actionId,
+      exec_result: data.result === 'success' ? 1 : 2,
+      exec_remark: data.remark || '',
+      exec_time: new Date().toISOString()
+    }
+    mockApi.records.push(record)
+    const action = mockApi.actions.find(a => a.id === actionId)
+    if (action) {
+      action.exec_count++
+      if (data.result === 'success') action.success_count++
+      else action.fail_count++
+      action.success_rate = Math.round((action.success_count / action.exec_count) * 10000) / 100
+      action.last_exec_time = record.exec_time
+    }
+    return record
+  },
+  deleteAction: async (id) => {
+    await delay()
+    const index = mockApi.actions.findIndex(a => a.id === id)
+    if (index === -1) throw new Error('正确的事不存在')
+    if (mockApi.records.some(r => r.action_id === id)) {
+      throw new Error('有执行记录的正确的事不能直接删除，请先归档')
+    }
+    mockApi.actions.splice(index, 1)
+    return { success: true }
+  },
+
+  // 规律
+  getLaws: async (params = {}) => {
+    await delay()
+    let list = mockApi.laws
+    if (params.law_type) list = list.filter(l => l.law_type === params.law_type)
+    if (params.category_id) list = list.filter(l => l.category_id === params.category_id)
+    if (params.status !== undefined) list = list.filter(l => l.status === params.status)
+    return list
+  },
+  createLaw: async (data) => {
+    await delay()
+    const law = {
+      id: Date.now(),
+      trigger_count: 0,
+      status: 0,
+      popup_enabled: 1,
+      ...data
+    }
+    mockApi.laws.push(law)
+    return law
+  },
+  deleteLaw: async (id) => {
+    await delay()
+    const index = mockApi.laws.findIndex(l => l.id === id)
+    if (index === -1) throw new Error('规律不存在')
+    mockApi.laws.splice(index, 1)
+    return { success: true }
+  },
+
+  // 首页数据
+  getHomeStats: async () => {
+    await delay()
+    return calcStats()
+  },
+  getTodos: async () => {
+    await delay()
+    return calcTodos()
+  },
+  dismissTodo: async (key) => {
+    await delay()
+    if (!mockApi.dismissedTodos.includes(key)) {
+      mockApi.dismissedTodos.push(key)
+    }
+    return { success: true }
+  },
+
+  // 榜单
+  getRanking: async (type) => {
+    await delay()
+    return calcRanking(type)
+  },
+  getRankConfig: async () => {
+    await delay()
+    return { ...mockApi.rankConfig }
+  },
+  updateRankConfig: async (config) => {
+    await delay()
+    Object.assign(mockApi.rankConfig, config)
+    return { ...mockApi.rankConfig }
+  }
+}
