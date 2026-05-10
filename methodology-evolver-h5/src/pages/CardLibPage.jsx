@@ -35,12 +35,12 @@ function CheckinModal({ action, onClose, onSubmit }) {
   )
 }
 
-// ─── 新增正确的事弹窗 ─────────────────────────────────────────
-function CreateActionModal({ categories, onClose, onSubmit }) {
-  const [name, setName] = useState('')
-  const [categoryId, setCategoryId] = useState('')
-  const [weight, setWeight] = useState(5)
-  const [remark, setRemark] = useState('')
+// ─── 新增/编辑正确的事弹窗 ────────────────────────────────────
+function CreateActionModal({ categories, onClose, onSubmit, initial }) {
+  const [name, setName] = useState(initial?.name ?? '')
+  const [categoryId, setCategoryId] = useState(initial?.category_id ?? '')
+  const [weight, setWeight] = useState(initial?.subjective_weight ?? 5)
+  const [remark, setRemark] = useState(initial?.remark ?? '')
 
   const handleSubmit = () => {
     if (!name.trim() || !categoryId) return
@@ -50,7 +50,7 @@ function CreateActionModal({ categories, onClose, onSubmit }) {
   return (
     <div className="modal-mask" onClick={onClose}>
       <div className="modal-box" onClick={e => e.stopPropagation()}>
-        <div className="modal-title">新增正确的事</div>
+        <div className="modal-title">{initial ? '编辑正确的事' : '新增正确的事'}</div>
         <div className="form-group">
           <div className="form-label">名称 *</div>
           <input className="form-input" value={name} onChange={e => setName(e.target.value)} placeholder="最多30字" maxLength={30} />
@@ -73,7 +73,7 @@ function CreateActionModal({ categories, onClose, onSubmit }) {
         </div>
         <div className="modal-actions">
           <button className="btn btn-outline" onClick={onClose}>取消</button>
-          <button className={`btn btn-primary ${!name.trim() || !categoryId ? 'disabled' : ''}`} onClick={handleSubmit} disabled={!name.trim() || !categoryId}>创建</button>
+          <button className={`btn btn-primary ${!name.trim() || !categoryId ? 'disabled' : ''}`} onClick={handleSubmit} disabled={!name.trim() || !categoryId}>{initial ? '保存' : '创建'}</button>
         </div>
       </div>
     </div>
@@ -151,14 +151,16 @@ function CreateLawModal({ categories, actions, onClose, onSubmit }) {
 }
 
 // ─── 正确的事操作菜单 ─────────────────────────────────────────
-function ActionMenu({ action, onClose, onCheckin, onArchive, onDelete, onTogglePin }) {
+function ActionMenu({ action, onClose, onCheckin, onArchive, onDelete, onTogglePin, onEdit }) {
   return (
     <div className="modal-mask" onClick={onClose}>
       <div className="action-menu" onClick={e => e.stopPropagation()}>
         <div className="action-menu-title">{action.name}</div>
         <button className="action-menu-item" onClick={() => { onCheckin(action); onClose() }}>✅ 打卡</button>
+        <button className="action-menu-item" onClick={() => { onEdit(action); onClose() }}>✏️ 编辑</button>
         <button className="action-menu-item" onClick={() => { onTogglePin(action); onClose() }}>{action.pinned ? '📌 取消置顶' : '📌 置顶'}</button>
         <button className="action-menu-item" onClick={() => { onArchive(action); onClose() }}>📦 归档</button>
+        <button className="action-menu-item disabled-item" disabled>🔀 迁移（小程序阶段实现）</button>
         <button className="action-menu-item danger" onClick={() => { onDelete(action); onClose() }}>🗑️ 删除</button>
         <button className="action-menu-cancel" onClick={onClose}>取消</button>
       </div>
@@ -306,6 +308,7 @@ export default function CardLibPage() {
   const [checkinTarget, setCheckinTarget] = useState(null)
   const [actionMenuTarget, setActionMenuTarget] = useState(null)
   const [showCreateAction, setShowCreateAction] = useState(false)
+  const [editActionTarget, setEditActionTarget] = useState(null)
 
   // 规律状态
   const [laws, setLaws] = useState([])
@@ -389,6 +392,15 @@ export default function CardLibPage() {
     await api.createAction(data)
     setShowCreateAction(false)
     loadActions()
+  }
+
+  const handleEditAction = async (data) => {
+    const idx = actions.findIndex(a => a.id === editActionTarget.id)
+    if (idx !== -1) {
+      actions[idx] = { ...actions[idx], ...data }
+      setActions([...actions])
+    }
+    setEditActionTarget(null)
   }
 
   // 规律操作
@@ -536,6 +548,7 @@ export default function CardLibPage() {
           action={actionMenuTarget}
           onClose={() => setActionMenuTarget(null)}
           onCheckin={a => setCheckinTarget(a)}
+          onEdit={a => setEditActionTarget(a)}
           onArchive={handleArchive}
           onDelete={handleDeleteAction}
           onTogglePin={handleToggleActionPin}
@@ -559,6 +572,16 @@ export default function CardLibPage() {
           categories={categories}
           onClose={() => setShowCreateAction(false)}
           onSubmit={handleCreateAction}
+        />
+      )}
+
+      {/* 编辑正确的事弹窗 */}
+      {editActionTarget && (
+        <CreateActionModal
+          categories={categories}
+          initial={editActionTarget}
+          onClose={() => setEditActionTarget(null)}
+          onSubmit={handleEditAction}
         />
       )}
 

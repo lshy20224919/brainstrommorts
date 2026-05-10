@@ -785,6 +785,11 @@ body {
   color: #F87272;
 }
 
+.action-menu-item.disabled-item {
+  color: #C4C9D4;
+  cursor: default;
+}
+
 .action-menu-cancel {
   display: block;
   width: 100%;
@@ -1376,13 +1381,16 @@ body {
 }
 
 /* ─── 复盘页 ────────────────────────────────────────────────── */
+.review-page-body {
+  gap: 8px;
+}
+
 .review-stats-row {
   display: flex;
   align-items: center;
   background: #162238;
   border-radius: 12px;
   padding: 14px 0;
-  margin-bottom: 10px;
 }
 
 .review-stat-item {
@@ -1413,7 +1421,6 @@ body {
   background: #FFFFFF;
   border-radius: 12px;
   padding: 12px 14px;
-  margin-bottom: 10px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
