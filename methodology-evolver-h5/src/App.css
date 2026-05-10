@@ -1374,3 +1374,376 @@ body {
   background: rgba(248, 114, 114, 0.08);
   color: #F87272;
 }
+
+/* ─── 复盘页 ────────────────────────────────────────────────── */
+.review-stats-row {
+  display: flex;
+  align-items: center;
+  background: #162238;
+  border-radius: 12px;
+  padding: 14px 0;
+  margin-bottom: 10px;
+}
+
+.review-stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.review-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #FFFFFF;
+  line-height: 1.2;
+}
+
+.review-stat-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.55);
+  margin-top: 3px;
+}
+
+.review-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255,255,255,0.15);
+}
+
+.review-section {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.review-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 1px;
+}
+
+.review-section-sub {
+  font-size: 10px;
+  color: #9CA3AF;
+  margin-bottom: 10px;
+}
+
+/* 热力图 — 行优先布局 */
+.heatmap-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.heatmap-row {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.heatmap-day-label {
+  width: 14px;
+  font-size: 9px;
+  color: #9CA3AF;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.heatmap-cell {
+  flex: 1;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  min-width: 0;
+}
+
+.heatmap-cell:hover,
+.heatmap-cell.selected {
+  transform: scale(1.25);
+  box-shadow: 0 0 0 1.5px #162238;
+  opacity: 1 !important;
+}
+
+.heatmap-legend {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.heatmap-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: #9CA3AF;
+}
+
+.heatmap-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.heatmap-tooltip {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: #F5F7FA;
+  border-radius: 8px;
+  padding: 7px 10px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6B7280;
+  flex-wrap: wrap;
+}
+
+.heatmap-tooltip-date {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+
+/* 雷达图 */
+.radar-compare-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.radar-tab {
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid #E5E7EB;
+  background: transparent;
+  font-size: 12px;
+  color: #6B7280;
+  cursor: pointer;
+}
+
+.radar-tab.active {
+  background: #162238;
+  border-color: #162238;
+  color: #FFFFFF;
+}
+
+.radar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.radar-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: #6B7280;
+}
+
+.radar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.radar-legend-line {
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.radar-data-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.radar-data-item {
+  flex: 1;
+  text-align: center;
+  background: #F5F7FA;
+  border-radius: 10px;
+  padding: 8px 4px;
+}
+
+.radar-data-icon {
+  font-size: 16px;
+  margin-bottom: 2px;
+}
+
+.radar-data-name {
+  font-size: 10px;
+  color: #9CA3AF;
+  margin-bottom: 2px;
+}
+
+.radar-data-rate {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.radar-data-diff {
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.radar-data-diff.up { color: #36D399; }
+.radar-data-diff.down { color: #F87272; }
+.radar-data-diff.flat { color: #9CA3AF; }
+
+/* 进化树 */
+.evo-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.evo-chain {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.evo-node-wrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.evo-connector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48px;
+  flex-shrink: 0;
+}
+
+.evo-connector-line {
+  width: 100%;
+  height: 0;
+  border-top: 2px dashed #D1D5DB;
+}
+
+.evo-iter-badge {
+  font-size: 9px;
+  color: #FFFFFF;
+  padding: 1px 5px;
+  border-radius: 8px;
+  margin-top: 3px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.evo-node {
+  background: #F5F7FA;
+  border-radius: 10px;
+  padding: 8px 10px;
+  min-width: 90px;
+  border: 2px solid transparent;
+  flex-shrink: 0;
+}
+
+.evo-node.active {
+  background: rgba(54, 211, 153, 0.08);
+  border-color: #36D399;
+}
+
+.evo-node.retired {
+  opacity: 0.5;
+}
+
+.evo-node-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 4px;
+}
+
+.evo-node.retired .evo-node-label {
+  text-decoration: line-through;
+  color: #9CA3AF;
+}
+
+.evo-node-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+
+.evo-node-cycle {
+  font-size: 9px;
+  color: #9CA3AF;
+}
+
+.evo-node-status {
+  font-size: 9px;
+  font-weight: 600;
+}
+
+/* 复盘历史 */
+.review-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.review-history-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  background: #F5F7FA;
+  border-radius: 10px;
+}
+
+.review-history-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.review-history-version {
+  font-size: 13px;
+  font-weight: 700;
+  color: #162238;
+  background: rgba(22,34,56,0.08);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.review-history-cycle {
+  font-size: 10px;
+  color: #9CA3AF;
+}
+
+.review-history-mid {
+  flex: 1;
+  min-width: 0;
+}
+
+.review-history-range {
+  font-size: 11px;
+  color: #9CA3AF;
+  margin-bottom: 3px;
+}
+
+.review-history-summary {
+  font-size: 13px;
+  color: #4B5563;
+  line-height: 1.4;
+}

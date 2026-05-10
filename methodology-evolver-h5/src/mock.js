@@ -171,6 +171,86 @@ export const mockApi = {
     }
   ],
 
+  // 复盘历史
+  reviews: [
+    {
+      id: 1, review_cycle: 'week', start_time: '2026-04-21', end_time: '2026-04-27',
+      snapshot_version: 'v1', review_summary: '本周投资执行较稳定，运动有所懈怠',
+      create_time: '2026-04-27T20:00:00.000Z'
+    },
+    {
+      id: 2, review_cycle: 'week', start_time: '2026-04-28', end_time: '2026-05-04',
+      snapshot_version: 'v2', review_summary: '定投坚持，低吸高抛成功2次，晨跑中断',
+      create_time: '2026-05-04T20:00:00.000Z'
+    },
+    {
+      id: 3, review_cycle: 'week', start_time: '2026-05-05', end_time: '2026-05-10',
+      snapshot_version: 'v3', review_summary: null,
+      create_time: '2026-05-10T20:00:00.000Z'
+    }
+  ],
+
+  // 近60天每日执行热力数据
+  dailyRecords: (() => {
+    const records = []
+    const base = new Date('2026-05-10')
+    for (let i = 59; i >= 0; i--) {
+      const d = new Date(base)
+      d.setDate(d.getDate() - i)
+      const dateStr = d.toISOString().slice(0, 10)
+      const isWeekend = d.getDay() === 0 || d.getDay() === 6
+      const execCount = isWeekend ? Math.floor(Math.random() * 3) : Math.floor(Math.random() * 5)
+      const successCount = execCount === 0 ? 0 : Math.floor(execCount * (0.5 + Math.random() * 0.5))
+      records.push({ date: dateStr, exec_count: execCount, success_count: successCount })
+    }
+    records[records.length - 1] = { date: '2026-05-10', exec_count: 3, success_count: 3 }
+    records[records.length - 2] = { date: '2026-05-09', exec_count: 2, success_count: 1 }
+    records[records.length - 3] = { date: '2026-05-08', exec_count: 4, success_count: 3 }
+    return records
+  })(),
+
+  // 各分类成功率快照（雷达图对比用）
+  categorySnapshots: [
+    {
+      version: 'v1', label: '4月第3周',
+      data: [
+        { category_id: 1, name: '投资', icon: '📈', success_rate: 40 },
+        { category_id: 2, name: '健康', icon: '💪', success_rate: 70 },
+        { category_id: 3, name: '学习', icon: '📚', success_rate: 55 },
+        { category_id: 4, name: '工作', icon: '💼', success_rate: 80 }
+      ]
+    },
+    {
+      version: 'v2', label: '4月第4周',
+      data: [
+        { category_id: 1, name: '投资', icon: '📈', success_rate: 60 },
+        { category_id: 2, name: '健康', icon: '💪', success_rate: 50 },
+        { category_id: 3, name: '学习', icon: '📚', success_rate: 65 },
+        { category_id: 4, name: '工作', icon: '💼', success_rate: 75 }
+      ]
+    },
+    {
+      version: 'v3', label: '5月第1周',
+      data: [
+        { category_id: 1, name: '投资', icon: '📈', success_rate: 85 },
+        { category_id: 2, name: '健康', icon: '💪', success_rate: 45 },
+        { category_id: 3, name: '学习', icon: '📚', success_rate: 75 },
+        { category_id: 4, name: '工作', icon: '💼', success_rate: 88 }
+      ]
+    }
+  ],
+
+  // 进化树节点
+  evolutionNodes: [
+    { id: 'a1-v1', label: '低吸高抛 v1', iteration_type: null, parent_id: null, review_cycle: '4月第3周', status: 'evolved', type: 'action' },
+    { id: 'a1-v2', label: '低吸高抛 v2', iteration_type: '优化', parent_id: 'a1-v1', review_cycle: '4月第4周', status: 'evolved', type: 'action' },
+    { id: 'a1-v3', label: '低吸高抛 v3', iteration_type: '固化', parent_id: 'a1-v2', review_cycle: '5月第1周', status: 'active', type: 'action' },
+    { id: 'a3-v1', label: '晨跑5公里 v1', iteration_type: null, parent_id: null, review_cycle: '4月第3周', status: 'evolved', type: 'action' },
+    { id: 'a3-v2', label: '晨跑5公里 v2', iteration_type: '降级', parent_id: 'a3-v1', review_cycle: '4月第4周', status: 'active', type: 'action' },
+    { id: 'l3-v1', label: '情绪化追涨 v1', iteration_type: null, parent_id: null, review_cycle: '4月第3周', status: 'evolved', type: 'law' },
+    { id: 'l3-v2', label: '情绪化追涨 v2', iteration_type: '淘汰', parent_id: 'l3-v1', review_cycle: '4月第4周', status: 'retired', type: 'law' }
+  ],
+
   // 榜单自定义数量配置
   rankConfig: {
     action: 5,
@@ -459,5 +539,23 @@ export const api = {
       records.push(record)
     }
     return records
+  },
+
+  // 复盘
+  getReviews: async () => {
+    await delay()
+    return [...mockApi.reviews]
+  },
+  getDailyRecords: async () => {
+    await delay()
+    return [...mockApi.dailyRecords]
+  },
+  getCategorySnapshots: async () => {
+    await delay()
+    return [...mockApi.categorySnapshots]
+  },
+  getEvolutionNodes: async () => {
+    await delay()
+    return [...mockApi.evolutionNodes]
   }
 }
