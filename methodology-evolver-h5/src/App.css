@@ -33,6 +33,8 @@ body {
 /* ─── 页面通用 ─────────────────────────────────────────────── */
 .page {
   min-height: calc(100vh - 60px);
+  width: 100%;
+  overflow-x: hidden;
 }
 
 .page-header {
@@ -408,7 +410,7 @@ body {
   margin-bottom: 20px;
 }
 
-.law-type-badge {
+.law-type-badge-large {
   text-align: center;
   font-size: 13px;
   font-weight: 600;
@@ -419,12 +421,12 @@ body {
   width: 100%;
 }
 
-.law-type-badge.positive {
+.law-type-badge-large.positive {
   background: rgba(54, 211, 153, 0.12);
   color: #36D399;
 }
 
-.law-type-badge.negative {
+.law-type-badge-large.negative {
   background: rgba(248, 114, 114, 0.12);
   color: #F87272;
 }
@@ -525,4 +527,850 @@ body {
 .modal-actions button.primary {
   background: #162238;
   color: #FFFFFF;
+}
+
+/* ─── 卡片库 ───────────────────────────────────────────────── */
+.card-lib-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.card-lib-tab {
+  padding: 14px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #9CA3AF;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.card-lib-tab.active {
+  color: #162238;
+  border-bottom-color: #162238;
+  font-weight: 700;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+  mask-image: linear-gradient(to right, black calc(100% - 24px), transparent 100%);
+}
+
+.filter-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-select {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #333;
+  background: #FFFFFF;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239CA3AF'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+
+.card-list {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 正确的事卡片 */
+.action-card-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.action-card-swipe-bg {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: #36D399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 0 12px 12px 0;
+}
+
+.action-card {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 14px 14px 14px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid #E5E7EB;
+  transition: transform 0.2s ease;
+  user-select: none;
+  cursor: pointer;
+}
+
+.action-card.swiped {
+  transform: translateX(-80px);
+}
+
+.swipe-checkin-hint {
+  position: absolute;
+  right: -80px;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: #36D399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 0 12px 12px 0;
+  pointer-events: none;
+}
+
+.action-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.action-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.action-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.action-card-category {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.action-card-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.action-card-stat {
+  font-size: 13px;
+  color: #9CA3AF;
+}
+
+.action-card-rate {
+  font-size: 13px;
+  color: #9CA3AF;
+}
+
+.action-card-rate.high {
+  color: #36D399;
+  font-weight: 600;
+}
+
+/* 标签 */
+.tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.tag-pinned {
+  color: #162238;
+  background: rgba(22, 34, 56, 0.08);
+}
+
+.tag-archived {
+  color: #9CA3AF;
+  background: #F5F7FA;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 60px 0;
+  color: #9CA3AF;
+}
+
+.empty-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.empty-text {
+  font-size: 15px;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 6px;
+  color: #666;
+}
+
+.empty-desc {
+  font-size: 13px;
+}
+
+/* 操作菜单 */
+.action-menu {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
+  background: #FFFFFF;
+  border-radius: 16px 16px 0 0;
+  padding: 16px 16px 32px;
+  z-index: 200;
+}
+
+.action-menu-title {
+  text-align: center;
+  font-size: 14px;
+  color: #9CA3AF;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #E5E7EB;
+  margin-bottom: 8px;
+}
+
+.action-menu-item {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+  font-size: 16px;
+  color: #333;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-bottom: 1px solid #F5F7FA;
+}
+
+.action-menu-item.danger {
+  color: #F87272;
+}
+
+.action-menu-cancel {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  text-align: center;
+  font-size: 16px;
+  color: #9CA3AF;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+/* 空状态 */
+.cardlib-empty {
+  text-align: center;
+  padding: 60px 0;
+  color: #9CA3AF;
+  font-size: 14px;
+}
+
+.cardlib-empty-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+/* 表单元素补充 */
+.form-range {
+  width: 100%;
+  accent-color: #162238;
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 4px;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  resize: none;
+  font-family: inherit;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #162238;
+}
+
+/* FAB 悬浮按钮 */
+.fab {
+  position: fixed;
+  bottom: 76px;
+  right: 16px;
+  width: 52px;
+  height: 52px;
+  background: #162238;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(22, 34, 56, 0.3);
+  cursor: pointer;
+  border: none;
+  z-index: 50;
+  max-right: calc(50% - 240px + 16px);
+}
+
+@media (min-width: 480px) {
+  .fab {
+    right: calc(50% - 224px);
+  }
+}
+
+/* ─── 规律卡片 ─────────────────────────────────────────────── */
+.law-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 14px 14px 14px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid #E5E7EB;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.law-card.positive {
+  border-left-color: #36D399;
+}
+
+.law-card.negative {
+  border-left-color: #F87272;
+}
+
+.law-card.archived {
+  border-left-color: #9CA3AF;
+  opacity: 0.6;
+}
+
+.law-card-desc {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.law-card.archived .law-card-desc {
+  text-decoration: line-through;
+  color: #9CA3AF;
+}
+
+.law-card-meta {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.law-card-category {
+  font-size: 12px;
+  color: #9CA3AF;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.law-card-related {
+  font-size: 12px;
+  color: #9CA3AF;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.law-card-related::before {
+  content: '·';
+  margin: 0 5px;
+}
+
+.law-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.law-card-trigger {
+  font-size: 13px;
+  color: #9CA3AF;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.law-type-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.law-type-badge.positive {
+  color: #36D399;
+  background: rgba(54, 211, 153, 0.1);
+}
+
+.law-type-badge.negative {
+  color: #F87272;
+  background: rgba(248, 114, 114, 0.1);
+}
+
+/* 新增规律类型选择 */
+.law-type-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.law-type-btn {
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #E5E7EB;
+  background: #FFFFFF;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #9CA3AF;
+  transition: all 0.15s;
+}
+
+.law-type-btn.positive.active {
+  border-color: #36D399;
+  background: rgba(54, 211, 153, 0.08);
+  color: #36D399;
+}
+
+.law-type-btn.negative.active {
+  border-color: #F87272;
+  background: rgba(248, 114, 114, 0.08);
+  color: #F87272;
+}
+
+/* ─── SOP 模板页面 ──────────────────────────────────────────── */
+.sop-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 14px 14px 14px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-left: 4px solid #162238;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.sop-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.sop-card-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  flex: 1;
+  min-width: 0;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.sop-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.sop-card-category {
+  font-size: 12px;
+  color: #9CA3AF;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sop-card-dot {
+  font-size: 12px;
+  color: #9CA3AF;
+  flex-shrink: 0;
+}
+
+.sop-card-steps {
+  font-size: 12px;
+  color: #9CA3AF;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sop-card-remark {
+  font-size: 13px;
+  color: #6B7280;
+  margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sop-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.sop-card-last-exec {
+  font-size: 13px;
+  color: #9CA3AF;
+  white-space: nowrap;
+}
+
+.sop-exec-btn {
+  font-size: 13px;
+  font-weight: 600;
+  color: #162238;
+  background: rgba(22, 34, 56, 0.08);
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── SOP 表单弹窗 ──────────────────────────────────────────── */
+.sop-modal-box {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.sop-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sop-step-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.sop-step-order {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #162238;
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.sop-step-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sop-step-input {
+  margin-bottom: 0;
+  font-size: 14px;
+  padding: 6px 10px;
+}
+
+.sop-step-select {
+  font-size: 13px;
+  padding: 5px 24px 5px 8px;
+  color: #6B7280;
+}
+
+.sop-step-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.sop-step-btn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  background: #FFFFFF;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6B7280;
+}
+
+.sop-step-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.sop-step-btn.danger {
+  color: #F87272;
+  border-color: #FECACA;
+}
+
+.sop-add-step-btn {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed #D1D5DB;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 14px;
+  color: #6B7280;
+  cursor: pointer;
+  text-align: center;
+}
+
+/* ─── 执行页 ────────────────────────────────────────────────── */
+.exec-page {
+  position: fixed;
+  inset: 0;
+  background: #F5F7FA;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  max-width: 480px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+}
+
+.exec-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #162238;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.exec-back {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.exec-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exec-progress {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  flex-shrink: 0;
+}
+
+.exec-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exec-step {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.exec-step.done {
+  opacity: 0.6;
+}
+
+.exec-step-check {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #D1D5DB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9CA3AF;
+  flex-shrink: 0;
+}
+
+.exec-step-check.checked {
+  background: #36D399;
+  border-color: #36D399;
+  color: #FFFFFF;
+}
+
+.exec-step-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.exec-step-desc {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1a1a1a;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.exec-step-action {
+  font-size: 13px;
+  color: #9CA3AF;
+}
+
+.exec-step-result.success {
+  color: #36D399;
+}
+
+.exec-step-result.fail {
+  color: #F87272;
+}
+
+.exec-step-undo {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 4px;
+}
+
+.exec-footer {
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  background: #FFFFFF;
+  border-top: 1px solid #E5E7EB;
+  flex-shrink: 0;
+}
+
+.exec-footer .btn {
+  flex: 1;
+}
+
+/* ─── 打卡弹窗 ──────────────────────────────────────────────── */
+.checkin-step-desc {
+  font-size: 14px;
+  color: #6B7280;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.checkin-result-row {
+  display: flex;
+  gap: 10px;
+}
+
+.checkin-result-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: 2px solid #E5E7EB;
+  background: #FFFFFF;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #9CA3AF;
+}
+
+.checkin-result-btn.success.active {
+  border-color: #36D399;
+  background: rgba(54, 211, 153, 0.08);
+  color: #36D399;
+}
+
+.checkin-result-btn.fail.active {
+  border-color: #F87272;
+  background: rgba(248, 114, 114, 0.08);
+  color: #F87272;
 }

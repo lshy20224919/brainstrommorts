@@ -142,6 +142,35 @@ export const mockApi = {
   // 待办提醒（本地状态，手动清除后当日不再显示）
   dismissedTodos: [], // 存储已清除的待办key
 
+  // SOP 模板
+  sops: [
+    {
+      id: 1,
+      name: '行情分析 SOP',
+      category_id: 1,
+      remark: '每次操盘前必走流程',
+      last_exec_time: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      steps: [
+        { id: 1, sort_order: 1, step_desc: '打开行情软件，查看大盘情绪指标', related_action_id: null },
+        { id: 2, sort_order: 2, step_desc: '检查当前持仓分布是否合理', related_action_id: null },
+        { id: 3, sort_order: 3, step_desc: '执行低吸高抛操作', related_action_id: 1 },
+        { id: 4, sort_order: 4, step_desc: '记录本次操盘心得', related_action_id: null }
+      ]
+    },
+    {
+      id: 2,
+      name: '晨间健康 SOP',
+      category_id: 2,
+      remark: '',
+      last_exec_time: null,
+      steps: [
+        { id: 5, sort_order: 1, step_desc: '起床后喝一杯温水', related_action_id: null },
+        { id: 6, sort_order: 2, step_desc: '完成晨间锻炼', related_action_id: 3 },
+        { id: 7, sort_order: 3, step_desc: '冥想10分钟', related_action_id: null }
+      ]
+    }
+  ],
+
   // 榜单自定义数量配置
   rankConfig: {
     action: 5,
@@ -352,5 +381,83 @@ export const api = {
     await delay()
     Object.assign(mockApi.rankConfig, config)
     return { ...mockApi.rankConfig }
+  },
+
+  // SOP
+  getSops: async (params = {}) => {
+    await delay()
+    let list = [...mockApi.sops]
+    if (params.category_id) list = list.filter(s => s.category_id === Number(params.category_id))
+    return list
+  },
+  createSop: async (data) => {
+    await delay()
+    const sop = {
+      id: Date.now(),
+      last_exec_time: null,
+      ...data,
+      steps: (data.steps || []).map((s, i) => ({ id: Date.now() + i, sort_order: i + 1, ...s }))
+    }
+    mockApi.sops.push(sop)
+    return sop
+  },
+  updateSop: async (id, data) => {
+    await delay()
+    const idx = mockApi.sops.findIndex(s => s.id === id)
+    if (idx === -1) throw new Error('SOP不存在')
+    mockApi.sops[idx] = {
+      ...mockApi.sops[idx],
+      ...data,
+      steps: (data.steps || mockApi.sops[idx].steps).map((s, i) => ({ ...s, sort_order: i + 1 }))
+    }
+    return mockApi.sops[idx]
+  },
+  deleteSop: async (id) => {
+    await delay()
+    const idx = mockApi.sops.findIndex(s => s.id === id)
+    if (idx === -1) throw new Error('SOP不存在')
+    mockApi.sops.splice(idx, 1)
+    return { success: true }
+  },
+  copySop: async (id) => {
+    await delay()
+    const src = mockApi.sops.find(s => s.id === id)
+    if (!src) throw new Error('SOP不存在')
+    const copy = {
+      ...src,
+      id: Date.now(),
+      name: src.name + '（副本）',
+      last_exec_time: null,
+      steps: src.steps.map((s, i) => ({ ...s, id: Date.now() + i }))
+    }
+    mockApi.sops.push(copy)
+    return copy
+  },
+  execSop: async (id, checkins) => {
+    // checkins: [{ action_id, result, remark }]
+    await delay()
+    const sop = mockApi.sops.find(s => s.id === id)
+    if (!sop) throw new Error('SOP不存在')
+    sop.last_exec_time = new Date().toISOString()
+    const records = []
+    for (const c of checkins) {
+      const action = mockApi.actions.find(a => a.id === c.action_id)
+      if (!action) continue
+      action.exec_count = (action.exec_count || 0) + 1
+      if (c.result === 'success') action.success_count = (action.success_count || 0) + 1
+      else action.fail_count = (action.fail_count || 0) + 1
+      action.success_rate = Math.round((action.success_count / action.exec_count) * 10000) / 100
+      action.last_exec_time = sop.last_exec_time
+      const record = {
+        id: Date.now() + records.length,
+        action_id: c.action_id,
+        exec_result: c.result === 'success' ? 1 : 2,
+        exec_remark: c.remark || '',
+        exec_time: sop.last_exec_time
+      }
+      mockApi.records.push(record)
+      records.push(record)
+    }
+    return records
   }
 }
