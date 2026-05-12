@@ -1754,3 +1754,297 @@ body {
   color: #4B5563;
   line-height: 1.4;
 }
+
+/* ─── 个人中心 ─────────────────────────────────────────────── */
+.profile-page .page-body {
+  padding: 16px;
+}
+
+.profile-user-card {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.profile-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #162238;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 14px;
+  flex-shrink: 0;
+}
+
+.profile-user-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #162238;
+  margin-bottom: 2px;
+}
+
+.profile-user-days {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.profile-data-overview {
+  display: flex;
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.profile-data-item {
+  flex: 1;
+  text-align: center;
+}
+.profile-data-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #162238;
+}
+
+.profile-data-label {
+  font-size: 11px;
+  color: #9CA3AF;
+  margin-top: 2px;
+}
+
+.profile-section {
+  background: #fff;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.profile-section-title {
+  padding: 12px 16px 8px;
+  font-size: 12px;
+  color: #9CA3AF;
+  font-weight: 500;
+}
+
+.profile-section-title-clickable {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
+}
+
+.profile-expand-arrow {
+  font-size: 18px;
+  color: #9CA3AF;
+  transition: transform 0.2s;
+}
+
+.profile-expand-arrow.expanded {
+  transform: rotate(90deg);
+}
+
+.profile-section-body {
+  padding: 0;
+}
+
+.profile-setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-top: 1px solid #F3F4F6;
+  cursor: pointer;
+}
+
+.profile-setting-label {
+  font-size: 14px;
+  color: #333;
+}
+
+.profile-setting-arrow {
+  font-size: 18px;
+  color: #9CA3AF;
+}
+
+.profile-setting-value {
+  font-size: 13px;
+  color: #9CA3AF;
+}
+/* Toggle 开关 */
+.profile-toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.profile-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.profile-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #D1D5DB;
+  border-radius: 24px;
+  transition: 0.2s;
+}
+
+.profile-toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.2s;
+}
+
+.profile-toggle input:checked + .profile-toggle-slider {
+  background: #162238;
+}
+
+.profile-toggle input:checked + .profile-toggle-slider::before {
+  transform: translateX(20px);
+}
+
+/* 深色模式选择器 */
+.profile-dark-mode-group {
+  display: flex;
+  gap: 4px;
+  background: #F3F4F6;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.profile-dark-mode-btn {
+  border: none;
+  background: transparent;
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  color: #6B7280;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.profile-dark-mode-btn.active {
+  background: #162238;
+  color: #fff;
+}
+
+/* 分类管理 */
+.profile-category-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border-top: 1px solid #F3F4F6;
+}
+
+.profile-category-name {
+  font-size: 14px;
+  color: #333;
+}
+
+.profile-category-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.profile-cat-btn {
+  border: 1px solid #E5E7EB;
+  background: #fff;
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  color: #6B7280;
+  cursor: pointer;
+}
+
+.profile-cat-btn.confirm {
+  background: #162238;
+  color: #fff;
+  border-color: #162238;
+}
+
+.profile-cat-btn.danger {
+  color: #F87272;
+  border-color: #F87272;
+}
+
+.profile-category-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.profile-category-input {
+  flex: 1;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+.profile-category-input:focus {
+  border-color: #162238;
+}
+
+.profile-category-add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-top: 1px solid #F3F4F6;
+}
+
+/* 确认弹窗文本 */
+.profile-confirm-text {
+  font-size: 14px;
+  color: #4B5563;
+  padding: 12px 0;
+  text-align: center;
+}
+
+/* Loading */
+.profile-loading-box {
+  text-align: center;
+  padding: 32px 24px;
+}
+
+.profile-loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #E5E7EB;
+  border-top-color: #162238;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+  animation: profile-spin 0.8s linear infinite;
+}
+
+@keyframes profile-spin {
+  to { transform: rotate(360deg); }
+}

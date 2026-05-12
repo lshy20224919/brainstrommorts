@@ -3,10 +3,10 @@ const delay = (ms = 300) => new Promise(r => setTimeout(r, ms))
 
 export const mockApi = {
   categories: [
-    { id: 1, name: '投资', icon: '📈', color: '#FF6B6B', sort_weight: 1 },
-    { id: 2, name: '健康', icon: '💪', color: '#4ECDC4', sort_weight: 2 },
-    { id: 3, name: '学习', icon: '📚', color: '#45B7D1', sort_weight: 3 },
-    { id: 4, name: '工作', icon: '💼', color: '#96CEB4', sort_weight: 4 }
+    { id: 1, name: '投资', icon: '📈', color: '#FF6B6B', sort_weight: 1, is_system_default: 1 },
+    { id: 2, name: '健康', icon: '💪', color: '#4ECDC4', sort_weight: 2, is_system_default: 1 },
+    { id: 3, name: '学习', icon: '📚', color: '#45B7D1', sort_weight: 3, is_system_default: 1 },
+    { id: 4, name: '工作', icon: '💼', color: '#96CEB4', sort_weight: 4, is_system_default: 1 }
   ],
 
   // 正确的事（action_right）
@@ -250,6 +250,14 @@ export const mockApi = {
     { id: 'l3-v1', label: '情绪化追涨 v1', iteration_type: null, parent_id: null, review_cycle: '4月第3周', status: 'evolved', type: 'law' },
     { id: 'l3-v2', label: '情绪化追涨 v2', iteration_type: '淘汰', parent_id: 'l3-v1', review_cycle: '4月第4周', status: 'retired', type: 'law' }
   ],
+
+  // 用户设置
+  settings: {
+    smart_migrate_on: true,
+    warning_popup_on: true,
+    dark_mode: 2, // 0浅色 1深色 2跟随系统
+    register_time: '2026-04-01T08:00:00.000Z'
+  },
 
   // 榜单自定义数量配置
   rankConfig: {
@@ -557,5 +565,52 @@ export const api = {
   getEvolutionNodes: async () => {
     await delay()
     return [...mockApi.evolutionNodes]
+  },
+
+  // 设置
+  getSettings: async () => {
+    await delay()
+    return { ...mockApi.settings }
+  },
+  updateSettings: async (patch) => {
+    await delay()
+    Object.assign(mockApi.settings, patch)
+    return { ...mockApi.settings }
+  },
+
+  // 分类管理
+  addCategory: async (name) => {
+    await delay()
+    const maxId = Math.max(...mockApi.categories.map(c => c.id), 0)
+    const maxWeight = Math.max(...mockApi.categories.map(c => c.sort_weight), 0)
+    const cat = { id: maxId + 1, name, icon: '📁', color: '#9CA3AF', sort_weight: maxWeight + 1, is_system_default: 0 }
+    mockApi.categories.push(cat)
+    return cat
+  },
+  renameCategory: async (id, name) => {
+    await delay()
+    const cat = mockApi.categories.find(c => c.id === id)
+    if (!cat) throw new Error('分类不存在')
+    cat.name = name
+    return cat
+  },
+  removeCategory: async (id) => {
+    await delay()
+    const idx = mockApi.categories.findIndex(c => c.id === id)
+    if (idx === -1) throw new Error('分类不存在')
+    mockApi.categories.splice(idx, 1)
+    return { success: true }
+  },
+  reorderCategory: async (id, direction) => {
+    await delay()
+    const sorted = [...mockApi.categories].sort((a, b) => a.sort_weight - b.sort_weight)
+    const idx = sorted.findIndex(c => c.id === id)
+    if (idx === -1) return sorted
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1
+    if (swapIdx < 0 || swapIdx >= sorted.length) return sorted
+    const tmpWeight = sorted[idx].sort_weight
+    sorted[idx].sort_weight = sorted[swapIdx].sort_weight
+    sorted[swapIdx].sort_weight = tmpWeight
+    return sorted.sort((a, b) => a.sort_weight - b.sort_weight)
   }
 }
