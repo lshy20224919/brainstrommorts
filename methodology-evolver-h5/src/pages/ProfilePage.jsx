@@ -254,6 +254,10 @@ export default function ProfilePage() {
               <span className="profile-setting-label">版本</span>
               <span className="profile-setting-value">v1.0.0</span>
             </div>
+            <div className="profile-setting-row" onClick={() => { if (confirm('重置将清除所有数据并恢复默认，确定？')) api.resetAllData() }}>
+              <span className="profile-setting-label" style={{ color: '#F87272' }}>重置所有数据</span>
+              <span className="profile-setting-arrow">›</span>
+            </div>
           </div>
         </div>
       </div>

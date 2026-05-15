@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ToastProvider } from './components/Toast'
 import HomePage from './pages/HomePage'
 import CardLibPage from './pages/CardLibPage'
 import SopPage from './pages/SopPage'
@@ -18,6 +19,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home')
 
   return (
+    <ToastProvider>
     <div className="app">
       <div className="page-content">
         {activeTab === 'home' && <HomePage />}
@@ -39,5 +41,6 @@ export default function App() {
         ))}
       </nav>
     </div>
+    </ToastProvider>
   )
 }
