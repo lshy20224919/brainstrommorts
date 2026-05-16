@@ -1,33 +1,14 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { api } from '../mock'
 import { useToast } from '../components/Toast'
 import CheckinModal from '../components/CheckinModal'
 import CreateActionModal from '../components/CreateActionModal'
 import CreateLawModal from '../components/CreateLawModal'
 import MigrateRecommendModal from '../components/MigrateRecommendModal'
+import EvolutionJourney from '../components/EvolutionJourney'
+import SmartSuggestion from '../components/SmartSuggestion'
+import PostActionGuide from '../components/PostActionGuide'
 import Loading from '../components/Loading'
-
-function StatsBoard({ stats }) {
-  return (
-    <div className="stats-board">
-      <div className="stats-board-item">
-        <div className="stats-board-label">正确的事</div>
-        <div className="stats-board-value">{stats.action_count ?? 0}</div>
-        <div className="stats-board-sub">触发 {stats.action_trigger_count ?? 0} 次</div>
-      </div>
-      <div className="stats-board-item">
-        <div className="stats-board-label">正向规律</div>
-        <div className="stats-board-value">{stats.positive_law_count ?? 0}</div>
-        <div className="stats-board-sub">触发 {stats.positive_law_trigger_count ?? 0} 次</div>
-      </div>
-      <div className="stats-board-item">
-        <div className="stats-board-label">负向规律</div>
-        <div className="stats-board-value negative">{stats.negative_law_count ?? 0}</div>
-        <div className="stats-board-sub">触发 {stats.negative_law_trigger_count ?? 0} 次</div>
-      </div>
-    </div>
-  )
-}
 
 function QuickActions({ onAddAction, onAddPositiveLaw, onAddNegativeLaw, onCheckin }) {
   return (
@@ -126,8 +107,9 @@ function RankSection({ categories }) {
   )
 }
 
-export default function HomePage() {
-  const [stats, setStats] = useState({})
+export default function HomePage({ onSwitchTab }) {
+  const [stages, setStages] = useState([])
+  const [suggestion, setSuggestion] = useState(null)
   const [todos, setTodos] = useState([])
   const [categories, setCategories] = useState([])
   const [actions, setActions] = useState([])
@@ -135,32 +117,61 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true)
   const [showMigrateRec, setShowMigrateRec] = useState(false)
   const [migrateRecs, setMigrateRecs] = useState([])
+  const [guide, setGuide] = useState(null)
+  const [lastCheckinActionId, setLastCheckinActionId] = useState(null)
   const toast = useToast()
 
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
     setLoading(true)
-    const [s, t, cats, acts] = await Promise.all([api.getHomeStats(), api.getTodos(), api.getCategories(), api.getActions({ status: 0 })])
-    setStats(s); setTodos(t); setCategories(cats); setActions(acts); setLoading(false)
+    const [stg, sug, t, cats, acts] = await Promise.all([
+      api.getEvolutionProgress(), api.getSmartSuggestion(), api.getTodos(), api.getCategories(), api.getActions({ status: 0 })
+    ])
+    setStages(stg); setSuggestion(sug); setTodos(t); setCategories(cats); setActions(acts); setLoading(false)
   }
 
   const handleDismiss = async (key) => { await api.dismissTodo(key); setTodos(prev => prev.filter(t => t.key !== key)) }
+
   const handleAddAction = async (data) => { await api.createAction(data); setModal(null); loadData(); toast.success('创建成功') }
-  const handleAddLaw = async (data) => { await api.createLaw(data); setModal(null); loadData(); toast.success('创建成功') }
+
+  const handleAddLaw = async (data) => {
+    await api.createLaw(data); setModal(null); loadData()
+    setGuide({ message: '规律创建成功', actions: [{ label: '去创建 SOP →', onClick: () => {} }] })
+  }
+
   const handleCheckin = async ({ actionId, result, remark }) => {
     await api.checkin(actionId, { result, remark })
-    await api.recordPopup([]); setModal(null); loadData(); toast.success('打卡成功')
+    await api.recordPopup([]); setModal(null); setLastCheckinActionId(actionId); loadData()
+    setGuide({
+      message: '打卡成功',
+      actions: [
+        { label: '查看详情', onClick: () => {} },
+        { label: '提炼规律', onClick: () => setModal('positive_law') }
+      ]
+    })
   }
+
   const handleMigrateClick = async () => { const recs = await api.getMigrateRecommendations(); setMigrateRecs(recs); setShowMigrateRec(true) }
   const handleAcceptMigration = async (rec) => { await api.acceptMigration(rec); loadData() }
+
+  const handleSuggestionAction = useCallback((action) => {
+    if (action === 'create_action') setModal('action')
+    else if (action === 'checkin') setModal('checkin')
+    else if (action === 'create_law') setModal('positive_law')
+    else if (action === 'go_sop') onSwitchTab?.('sop')
+    else if (action === 'go_review') onSwitchTab?.('review')
+  }, [onSwitchTab])
+
+  const handleGuideClose = useCallback(() => setGuide(null), [])
 
   return (
     <div className="page">
       <div className="page-header"><h1 className="page-title">方法论进化器</h1></div>
       <div className="page-body">
         {loading ? <Loading rows={4} /> : (<>
-          <StatsBoard stats={stats} />
+          <EvolutionJourney stages={stages} />
+          <SmartSuggestion suggestion={suggestion} onAction={handleSuggestionAction} />
           <QuickActions onAddAction={() => setModal('action')} onAddPositiveLaw={() => setModal('positive_law')} onAddNegativeLaw={() => setModal('negative_law')} onCheckin={() => setModal('checkin')} />
           <TodoSection todos={todos} onDismiss={handleDismiss} onMigrateClick={handleMigrateClick} />
           <RankSection categories={categories} />
@@ -172,6 +183,7 @@ export default function HomePage() {
       <CreateLawModal visible={modal === 'positive_law'} lawType={1} categories={categories} actions={actions} onClose={() => setModal(null)} onSubmit={handleAddLaw} />
       <CreateLawModal visible={modal === 'negative_law'} lawType={2} categories={categories} actions={actions} onClose={() => setModal(null)} onSubmit={handleAddLaw} />
       <MigrateRecommendModal visible={showMigrateRec} recommendations={migrateRecs} onClose={() => setShowMigrateRec(false)} onAccept={handleAcceptMigration} onDismiss={api.dismissMigration} />
+      <PostActionGuide visible={!!guide} message={guide?.message} actions={guide?.actions || []} onClose={handleGuideClose} />
     </div>
   )
 }

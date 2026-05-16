@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { api } from '../mock'
+import SopExecSummary from '../components/SopExecSummary'
 
 // ─── 工具 ─────────────────────────────────────────────────────
 function formatLastExec(t) {
@@ -211,7 +212,11 @@ function ExecPage({ sop, actions, onClose, onDone }) {
         remark: state.remark
       }))
     await api.execSop(sop.id, checkins)
-    onDone()
+    const results = checkins.map(c => ({
+      actionName: getAction(c.action_id)?.name || '未知动作',
+      result: c.result
+    }))
+    onDone(results)
   }
 
   return (
@@ -283,34 +288,34 @@ function CheckinModal({ step, action, onClose, onSubmit }) {
   const [remark, setRemark] = useState('')
 
   return (
-    <div className="modal-mask" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
-        <div className="modal-title">打卡：{action?.name}</div>
+    <div className="g-modal-mask" onClick={onClose}>
+      <div className="g-modal-box" onClick={e => e.stopPropagation()}>
+        <div className="g-modal-title">打卡：{action?.name}</div>
         <div className="checkin-step-desc">{step.step_desc}</div>
 
-        <div className="form-group">
-          <div className="form-label">执行结果 *</div>
-          <div className="checkin-result-row">
+        <div className="g-form-group">
+          <div className="g-form-label">执行结果 *</div>
+          <div className="g-checkin-btns">
             <button
-              className={`checkin-result-btn success${result === 'success' ? ' active' : ''}`}
+              className={`g-checkin-btn success${result === 'success' ? ' active' : ''}`}
               onClick={() => setResult('success')}
             >✅ 成功</button>
             <button
-              className={`checkin-result-btn fail${result === 'fail' ? ' active' : ''}`}
+              className={`g-checkin-btn fail${result === 'fail' ? ' active' : ''}`}
               onClick={() => setResult('fail')}
             >❌ 失败</button>
           </div>
         </div>
 
-        <div className="form-group">
-          <div className="form-label">备注（选填）</div>
-          <textarea className="form-textarea" value={remark} onChange={e => setRemark(e.target.value)} placeholder="记录执行情况..." rows={2} maxLength={200} />
+        <div className="g-form-group">
+          <div className="g-form-label">备注（选填）</div>
+          <textarea className="g-form-textarea" value={remark} onChange={e => setRemark(e.target.value)} placeholder="记录执行情况..." rows={2} maxLength={200} />
         </div>
 
-        <div className="modal-actions">
+        <div className="g-modal-actions">
           <button className="btn btn-outline" onClick={onClose}>取消</button>
           <button
-            className={`btn btn-primary${!result ? ' disabled' : ''}`}
+            className="btn btn-primary"
             disabled={!result}
             onClick={() => onSubmit(result, remark)}
           >确认</button>
@@ -363,6 +368,7 @@ export default function SopPage() {
   const [menuTarget, setMenuTarget] = useState(null)
   const [editTarget, setEditTarget] = useState(null)   // null=关闭, false=新建, sop对象=编辑
   const [execTarget, setExecTarget] = useState(null)
+  const [execSummary, setExecSummary] = useState(null)
   const [toast, setToast] = useState('')
 
   const showToast = (msg) => {
@@ -412,13 +418,21 @@ export default function SopPage() {
     showToast('模板已删除')
   }
 
-  const handleExecDone = () => {
+  const handleExecDone = (results) => {
     setExecTarget(null)
     loadSops()
-    showToast('执行完成，记录已保存')
+    if (results && results.length > 0) {
+      setExecSummary({ sopName: execTarget.name, results })
+    } else {
+      showToast('执行完成，记录已保存')
+    }
   }
 
   const displaySops = sops
+
+  if (execSummary) {
+    return <SopExecSummary visible={true} sopName={execSummary.sopName} results={execSummary.results} onClose={() => setExecSummary(null)} />
+  }
 
   if (execTarget) {
     return (

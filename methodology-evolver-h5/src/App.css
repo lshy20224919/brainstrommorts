@@ -390,6 +390,8 @@ body {
   align-items: flex-end;
   justify-content: center;
   z-index: 200;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 .modal {
@@ -896,7 +898,7 @@ body {
 .fab {
   position: fixed;
   bottom: 76px;
-  right: 16px;
+  right: max(16px, calc(50% - 240px + 16px));
   width: 52px;
   height: 52px;
   background: #162238;
@@ -1255,6 +1257,10 @@ body {
   background: #F5F7FA;
   z-index: 300;
   display: flex;
+  max-width: 480px;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
   flex-direction: column;
   max-width: 480px;
   left: 50%;
@@ -2095,7 +2101,8 @@ body {
 }
 
 /* ─── 共享组件样式 ─────────────────────────────────────────── */
-.g-modal-mask {
+.g-modal-mask,
+.modal-mask {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.4);
@@ -2104,9 +2111,14 @@ body {
   align-items: center;
   justify-content: center;
   animation: g-fade-in 0.15s;
+  max-width: 480px;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
 }
 
-.g-modal-box {
+.g-modal-box,
+.modal-box {
   background: #fff;
   border-radius: 14px;
   padding: 20px;
@@ -2117,7 +2129,8 @@ body {
   animation: g-scale-in 0.2s;
 }
 
-.g-modal-title {
+.g-modal-title,
+.modal-title {
   font-size: 16px;
   font-weight: 700;
   color: #162238;
@@ -2125,7 +2138,8 @@ body {
   text-align: center;
 }
 
-.g-modal-actions {
+.g-modal-actions,
+.modal-actions {
   display: flex;
   gap: 10px;
   margin-top: 16px;
@@ -2142,6 +2156,7 @@ body {
 }
 
 .btn-primary { background: #162238; color: #fff; }
+.btn-primary:disabled, .btn-primary.disabled { background: #9CA3AF; cursor: not-allowed; opacity: 0.6; }
 .btn-outline { background: #F3F4F6; color: #333; }
 .btn-danger { background: #F87272; color: #fff; }
 .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; }
@@ -2153,7 +2168,11 @@ body {
 /* ActionSheet */
 .g-action-sheet {
   position: fixed;
-  bottom: 0; left: 0; right: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 480px;
   background: #fff;
   border-radius: 14px 14px 0 0;
   padding: 8px 0 env(safe-area-inset-bottom, 16px);
@@ -2294,6 +2313,10 @@ body {
   z-index: 1200;
   background: #F5F7FA;
   animation: action-detail-slide-in 0.24s ease-out;
+  max-width: 480px;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
   display: flex;
   flex-direction: column;
 }
@@ -2508,4 +2531,290 @@ body {
 @keyframes action-detail-slide-in {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
+}
+
+/* ─── 进化旅程 ─────────────────────────────────────────────── */
+.evo-journey {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0 16px 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.evo-journey-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #162238;
+  margin-bottom: 14px;
+}
+
+.evo-journey-track {
+  display: flex;
+  justify-content: space-between;
+}
+
+.evo-journey-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+.evo-journey-dot-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  position: relative;
+  height: 24px;
+}
+
+.evo-journey-line {
+  position: absolute;
+  right: 50%;
+  width: 100%;
+  height: 2px;
+  background: #E5E7EB;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+.evo-journey-line.done {
+  background: #162238;
+}
+
+.evo-journey-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #D1D5DB;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  transition: 0.2s;
+}
+
+.evo-journey-dot.done {
+  background: #162238;
+  border-color: #162238;
+}
+
+.evo-journey-check {
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.evo-journey-label {
+  font-size: 11px;
+  color: #6B7280;
+  margin-top: 6px;
+  text-align: center;
+}
+
+.evo-journey-value {
+  font-size: 10px;
+  color: #9CA3AF;
+  margin-top: 2px;
+}
+
+/* ─── 智能建议 ─────────────────────────────────────────────── */
+.smart-suggestion {
+  background: linear-gradient(135deg, #162238 0%, #1e3a5f 100%);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 0 16px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.smart-suggestion-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.smart-suggestion-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.smart-suggestion-text {
+  font-size: 13px;
+  color: #E5E7EB;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.smart-suggestion-btn {
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #FFFFFF;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.smart-suggestion-btn:active {
+  background: rgba(255,255,255,0.25);
+}
+
+/* ─── 操作后引导浮层 ──────────────────────────────────────── */
+.post-action-guide {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 360px;
+  width: calc(100% - 32px);
+  animation: g-slide-up 0.25s ease-out;
+}
+
+.post-action-guide-msg {
+  font-size: 13px;
+  color: #162238;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.post-action-guide-btns {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.post-action-guide-btn {
+  border: none;
+  background: #162238;
+  color: #FFFFFF;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ─── SOP 执行汇总 ────────────────────────────────────────── */
+.sop-exec-summary {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: #F5F7FA;
+  display: flex;
+  max-width: 480px;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  flex-direction: column;
+  animation: g-fade-in 0.2s;
+}
+
+.sop-exec-summary-header {
+  background: #162238;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.sop-exec-summary-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 6px;
+}
+
+.sop-exec-summary-sop {
+  font-size: 14px;
+  color: #9CA3AF;
+}
+
+.sop-exec-summary-stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  padding: 20px 16px;
+}
+
+.sop-exec-summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.sop-exec-summary-stat .label {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.sop-exec-summary-stat .value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #162238;
+}
+
+.sop-exec-summary-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px;
+}
+
+.sop-exec-summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #FFFFFF;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.sop-exec-summary-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.sop-exec-summary-badge.success { background: #36D399; }
+.sop-exec-summary-badge.fail { background: #F87272; }
+
+.sop-exec-summary-name {
+  font-size: 14px;
+  color: #333;
+}
+
+.sop-exec-summary-done {
+  margin: 16px;
+  padding: 14px;
+  background: #162238;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
 }

@@ -22,7 +22,7 @@ export default function App() {
     <ToastProvider>
     <div className="app">
       <div className="page-content">
-        {activeTab === 'home' && <HomePage />}
+        {activeTab === 'home' && <HomePage onSwitchTab={setActiveTab} />}
         {activeTab === 'card' && <CardLibPage />}
         {activeTab === 'sop' && <SopPage />}
         {activeTab === 'review' && <ReviewPage />}

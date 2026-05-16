@@ -316,6 +316,43 @@ export const api = {
   getTodos: async () => { await delay(); return calcTodos() },
   dismissTodo: async (key) => { await delay(); if (!mockApi.dismissedTodos.includes(key)) mockApi.dismissedTodos.push(key); persist(); return { success: true } },
 
+  // 进化旅程
+  getEvolutionProgress: async () => {
+    await delay(100)
+    const actions = mockApi.actions.filter(a => a.status === 0)
+    const totalExec = actions.reduce((s, a) => s + a.exec_count, 0)
+    const lawCount = mockApi.laws.length
+    const sopCount = mockApi.sops.length
+    const reviewCount = mockApi.reviews.length
+    return [
+      { key: 'record', label: '记录', done: actions.length >= 1, value: `${actions.length} 条` },
+      { key: 'verify', label: '验证', done: totalExec >= 5, value: `${totalExec} 次` },
+      { key: 'extract', label: '提炼', done: lawCount >= 1, value: `${lawCount} 条` },
+      { key: 'solidify', label: '固化', done: sopCount >= 1, value: `${sopCount} 个` },
+      { key: 'iterate', label: '迭代', done: reviewCount >= 1, value: `${reviewCount} 次` }
+    ]
+  },
+
+  // 智能建议
+  getSmartSuggestion: async () => {
+    await delay(100)
+    const actions = mockApi.actions.filter(a => a.status === 0)
+    const totalExec = actions.reduce((s, a) => s + a.exec_count, 0)
+    const lawCount = mockApi.laws.length
+    const sopCount = mockApi.sops.length
+    const reviewCount = mockApi.reviews.length
+
+    if (actions.length === 0) return { text: '记录你做对的第一件事', action: 'create_action', icon: '✏️' }
+    if (totalExec < 5) return { text: '去执行一次，验证它是否有效', action: 'checkin', icon: '✅' }
+    if (lawCount === 0) return { text: '从成功经验中提炼规律', action: 'create_law', icon: '💡' }
+    if (sopCount === 0) return { text: '把规律组合成可执行的流程', action: 'go_sop', icon: '📌' }
+    if (reviewCount === 0) return { text: '做一次复盘，看看方法论是否在进化', action: 'go_review', icon: '🔄' }
+
+    const best = [...actions].sort((a, b) => b.exec_count - a.exec_count)[0]
+    if (best) return { text: `"${best.name}"成功率 ${best.success_rate ?? 0}%，已执行 ${best.exec_count} 次，建议提炼为 SOP`, action: 'go_sop', icon: '🚀' }
+    return { text: '继续保持，你的方法论在持续进化', action: null, icon: '🎯' }
+  },
+
   // 榜单
   getRanking: async (type) => { await delay(); return calcRanking(type) },
   getRankConfig: async () => { await delay(); return { ...mockApi.rankConfig } },
