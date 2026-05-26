@@ -1394,6 +1394,204 @@ body {
   flex: 1;
 }
 
+/* ─── 步骤进度条 ────────────────────────────────────────────── */
+.exec-progress-bar {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  background: #1a2d44;
+  gap: 0;
+}
+
+.exec-progress-line {
+  flex: 1;
+  height: 2px;
+  margin: 0 -4px;
+  z-index: 0;
+}
+
+.exec-progress-line.pending {
+  background: #4B5563;
+}
+
+.exec-progress-line.done {
+  background: #36D399;
+}
+
+.exec-progress-node-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 1;
+}
+
+.exec-progress-node {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.exec-progress-node.pending {
+  border-color: #4B5563;
+  background: transparent;
+  color: #4B5563;
+}
+
+.exec-progress-node.current {
+  border-color: #36D399;
+  background: #36D399;
+  color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(54, 211, 153, 0.25);
+}
+
+.exec-progress-node.done {
+  border-color: #36D399;
+  background: #36D399;
+  color: #FFFFFF;
+}
+
+.exec-progress-label {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  white-space: nowrap;
+}
+
+.exec-progress-label.current {
+  color: #36D399;
+}
+
+/* ─── 聚焦步骤卡片 ──────────────────────────────────────────── */
+.exec-focused-card {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
+  margin: 0 16px 12px;
+}
+
+.exec-focused-card-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.exec-focused-card-order {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #36D399;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.exec-focused-card-order.playing::before {
+  content: '▶';
+  font-size: 10px;
+  margin-left: 2px;
+}
+
+.exec-focused-card-desc {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.5;
+}
+
+.exec-focused-card-action {
+  font-size: 13px;
+  color: #9CA3AF;
+  margin-bottom: 14px;
+  margin-left: 44px;
+}
+
+.exec-focused-card-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.exec-focused-card-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #E5E7EB;
+  background: #FFFFFF;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #9CA3AF;
+  transition: all 0.15s;
+}
+
+.exec-focused-card-btn.success:active,
+.exec-focused-card-btn.success.chosen {
+  border-color: #36D399;
+  background: rgba(54, 211, 153, 0.10);
+  color: #36D399;
+}
+
+.exec-focused-card-btn.fail:active,
+.exec-focused-card-btn.fail.chosen {
+  border-color: #F87272;
+  background: rgba(248, 114, 114, 0.10);
+  color: #F87272;
+}
+
+/* ─── 紧凑步骤行 ──────────────────────────────────────────── */
+.exec-compact-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  cursor: default;
+  opacity: 0.45;
+}
+
+.exec-compact-order {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #D1D5DB;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 600;
+  color: #9CA3AF;
+  flex-shrink: 0;
+}
+
+.exec-compact-desc {
+  flex: 1;
+  font-size: 13px;
+  color: #9CA3AF;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── 执行页主体 ──────────────────────────────────────────── */
+.exec-body-new {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ─── 打卡弹窗 ──────────────────────────────────────────────── */
 .checkin-step-desc {
   font-size: 14px;

@@ -158,48 +158,133 @@ function SopMenu({ sop, onClose, onEdit, onCopy, onDelete }) {
   )
 }
 
+// ─── 步骤进度条 ───────────────────────────────────────────────
+function StepProgressBar({ steps, stepStates }) {
+  const doneCount = stepStates.filter(s => s.done).length
+  const currentIdx = stepStates.findIndex(s => !s.done)
+
+  return (
+    <div className="exec-progress-bar">
+      {steps.map((step, idx) => {
+        const state = stepStates[idx]
+        const isDone = state.done
+        const isCurrent = idx === currentIdx
+        const isPending = !isDone && !isCurrent
+
+        // Line before this node
+        const lineBefore = idx > 0 ? (
+          <div className={`exec-progress-line ${stepStates[idx - 1].done ? 'done' : 'pending'}`} />
+        ) : null
+
+        // Line after this node
+        const lineAfter = idx < steps.length - 1 ? (
+          <div className={`exec-progress-line ${isDone ? 'done' : 'pending'}`} />
+        ) : null
+
+        return (
+          <div key={step.id} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+            {lineBefore}
+            <div className="exec-progress-node-wrap">
+              <div className={`exec-progress-node ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}`}>
+                {isDone ? '✓' : idx + 1}
+              </div>
+              <div className={`exec-progress-label ${isCurrent ? 'current' : ''}`}>
+                {idx + 1}步
+              </div>
+            </div>
+            {lineAfter}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── 聚焦步骤卡片 ────────────────────────────────────────────
+function FocusedStepCard({ step, state, index, action, onComplete, onUndo }) {
+  const hasAction = !!step.related_action_id
+  const isDone = state.done
+
+  const handleResult = (result) => {
+    onComplete(result)
+  }
+
+  return (
+    <div className="exec-focused-card">
+      <div className="exec-focused-card-step">
+        <div className={`exec-focused-card-order${isDone ? '' : ' playing'}`}>
+          {isDone ? '✓' : index + 1}
+        </div>
+        <div className="exec-focused-card-desc">{step.step_desc}</div>
+      </div>
+
+      {hasAction && (
+        <div className="exec-focused-card-action">关联：{action?.name}</div>
+      )}
+
+      {!isDone ? (
+        hasAction ? (
+          <div className="exec-focused-card-buttons">
+            <button
+              className="exec-focused-card-btn success"
+              onClick={() => handleResult('success')}
+            >✅ 成功</button>
+            <button
+              className="exec-focused-card-btn fail"
+              onClick={() => handleResult('fail')}
+            >❌ 失败</button>
+          </div>
+        ) : (
+          <div className="exec-focused-card-buttons">
+            <button
+              className="exec-focused-card-btn success"
+              onClick={() => onComplete(null)}
+            >✅ 完成此步</button>
+          </div>
+        )
+      ) : (
+        <div style={{ fontSize: 12, color: '#9CA3AF', textAlign: 'center', cursor: 'pointer' }} onClick={onUndo}>
+          点击撤销
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── 紧凑步骤行 ───────────────────────────────────────────────
+function CompactStepRow({ step, index }) {
+  return (
+    <div className="exec-compact-row">
+      <div className="exec-compact-order">{index + 1}</div>
+      <div className="exec-compact-desc">{step.step_desc}</div>
+    </div>
+  )
+}
+
 // ─── 执行页 ───────────────────────────────────────────────────
 function ExecPage({ sop, actions, onClose, onDone }) {
-  // stepStates: { done: bool, result: 'success'|'fail'|null, remark: '' }
   const [stepStates, setStepStates] = useState(
     sop.steps.map(() => ({ done: false, result: null, remark: '' }))
   )
-  const [checkinIdx, setCheckinIdx] = useState(null) // 当前打卡弹窗的步骤索引
 
   const allDone = stepStates.every(s => s.done)
-
+  const currentIdx = stepStates.findIndex(s => !s.done)
   const getAction = (id) => actions.find(a => a.id === id)
 
-  const handleStepTap = (idx) => {
-    const step = sop.steps[idx]
-    const state = stepStates[idx]
-    if (state.done) {
-      // 撤销
-      setStepStates(prev => {
-        const n = [...prev]
-        n[idx] = { done: false, result: null, remark: '' }
-        return n
-      })
-    } else if (step.related_action_id) {
-      // 有关联 → 弹打卡弹窗
-      setCheckinIdx(idx)
-    } else {
-      // 无关联 → 直接完成
-      setStepStates(prev => {
-        const n = [...prev]
-        n[idx] = { done: true, result: null, remark: '' }
-        return n
-      })
-    }
-  }
-
-  const handleCheckin = (result, remark) => {
+  const handleComplete = (idx, result, remark = '') => {
     setStepStates(prev => {
       const n = [...prev]
-      n[checkinIdx] = { done: true, result, remark }
+      n[idx] = { done: true, result, remark }
       return n
     })
-    setCheckinIdx(null)
+  }
+
+  const handleUndo = (idx) => {
+    setStepStates(prev => {
+      const n = [...prev]
+      n[idx] = { done: false, result: null, remark: '' }
+      return n
+    })
   }
 
   const handleSubmit = async () => {
@@ -227,36 +312,25 @@ function ExecPage({ sop, actions, onClose, onDone }) {
         <div className="exec-progress">{stepStates.filter(s => s.done).length}/{sop.steps.length}</div>
       </div>
 
-      <div className="exec-body">
-        {sop.steps.map((step, idx) => {
-          const state = stepStates[idx]
-          const action = step.related_action_id ? getAction(step.related_action_id) : null
-          return (
-            <div
-              key={step.id}
-              className={`exec-step${state.done ? ' done' : ''}`}
-              onClick={() => handleStepTap(idx)}
-            >
-              <div className={`exec-step-check${state.done ? ' checked' : ''}`}>
-                {state.done ? '✓' : idx + 1}
-              </div>
-              <div className="exec-step-content">
-                <div className="exec-step-desc">{step.step_desc}</div>
-                {action && (
-                  <div className="exec-step-action">
-                    关联：{action.name}
-                    {state.done && state.result && (
-                      <span className={`exec-step-result ${state.result}`}>
-                        {state.result === 'success' ? ' · 成功' : ' · 失败'}
-                      </span>
-                    )}
-                  </div>
-                )}
-                {state.done && <div className="exec-step-undo">点击撤销</div>}
-              </div>
-            </div>
-          )
-        })}
+      <StepProgressBar steps={sop.steps} stepStates={stepStates} />
+
+      <div className="exec-body-new">
+        {/* 当前步骤（第一个未完成的） */}
+        {currentIdx !== -1 && (
+          <FocusedStepCard
+            step={sop.steps[currentIdx]}
+            state={stepStates[currentIdx]}
+            index={currentIdx}
+            action={sop.steps[currentIdx].related_action_id ? getAction(sop.steps[currentIdx].related_action_id) : null}
+            onComplete={(result) => handleComplete(currentIdx, result)}
+            onUndo={() => handleUndo(currentIdx)}
+          />
+        )}
+
+        {/* 后续未开始步骤 */}
+        {currentIdx !== -1 && sop.steps.slice(currentIdx + 1).map((step, i) => (
+          <CompactStepRow key={step.id} step={step} index={currentIdx + 1 + i} />
+        ))}
       </div>
 
       <div className="exec-footer">
@@ -268,58 +342,6 @@ function ExecPage({ sop, actions, onClose, onDone }) {
         >
           完成并提交
         </button>
-      </div>
-
-      {checkinIdx !== null && (
-        <CheckinModal
-          step={sop.steps[checkinIdx]}
-          action={getAction(sop.steps[checkinIdx].related_action_id)}
-          onClose={() => setCheckinIdx(null)}
-          onSubmit={handleCheckin}
-        />
-      )}
-    </div>
-  )
-}
-
-// ─── 打卡弹窗 ─────────────────────────────────────────────────
-function CheckinModal({ step, action, onClose, onSubmit }) {
-  const [result, setResult] = useState(null)
-  const [remark, setRemark] = useState('')
-
-  return (
-    <div className="g-modal-mask" onClick={onClose}>
-      <div className="g-modal-box" onClick={e => e.stopPropagation()}>
-        <div className="g-modal-title">打卡：{action?.name}</div>
-        <div className="checkin-step-desc">{step.step_desc}</div>
-
-        <div className="g-form-group">
-          <div className="g-form-label">执行结果 *</div>
-          <div className="g-checkin-btns">
-            <button
-              className={`g-checkin-btn success${result === 'success' ? ' active' : ''}`}
-              onClick={() => setResult('success')}
-            >✅ 成功</button>
-            <button
-              className={`g-checkin-btn fail${result === 'fail' ? ' active' : ''}`}
-              onClick={() => setResult('fail')}
-            >❌ 失败</button>
-          </div>
-        </div>
-
-        <div className="g-form-group">
-          <div className="g-form-label">备注（选填）</div>
-          <textarea className="g-form-textarea" value={remark} onChange={e => setRemark(e.target.value)} placeholder="记录执行情况..." rows={2} maxLength={200} />
-        </div>
-
-        <div className="g-modal-actions">
-          <button className="btn btn-outline" onClick={onClose}>取消</button>
-          <button
-            className="btn btn-primary"
-            disabled={!result}
-            onClick={() => onSubmit(result, remark)}
-          >确认</button>
-        </div>
       </div>
     </div>
   )
