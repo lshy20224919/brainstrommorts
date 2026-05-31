@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { api, mockApi } from '../mock'
+import { api } from '../mock'
 
 function UserCard({ settings }) {
   const days = Math.max(1, Math.floor((Date.now() - new Date(settings.register_time).getTime()) / (1000 * 60 * 60 * 24)))
@@ -217,23 +217,23 @@ export default function ProfilePage() {
 
   const handleAddCategory = async (name) => {
     await api.addCategory(name)
-    setCategories([...mockApi.categories])
+    setCategories(await api.getCategories())
   }
 
   const handleRenameCategory = async (id, name) => {
     await api.renameCategory(id, name)
-    setCategories([...mockApi.categories])
+    setCategories(await api.getCategories())
   }
 
   const handleRemoveCategory = async (id) => {
     if (!confirm('确定删除该分类？')) return
     await api.removeCategory(id)
-    setCategories([...mockApi.categories])
+    setCategories(await api.getCategories())
   }
 
   const handleReorderCategory = async (id, direction) => {
     await api.reorderCategory(id, direction)
-    setCategories([...mockApi.categories])
+    setCategories(await api.getCategories())
   }
 
   const totalRecords = actions.length + laws.length

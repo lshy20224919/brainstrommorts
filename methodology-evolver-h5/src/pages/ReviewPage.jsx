@@ -117,6 +117,61 @@ function HeatmapCalendar({ dailyRecords }) {
   )
 }
 
+// ─── 趋势折线图（纯 SVG） ─────────────────────────────────────
+function TrendChart({ dailyRecords }) {
+  const recent = dailyRecords.slice(-14)
+  if (recent.length < 2) return null
+
+  const W = 320, H = 140, PX = 30, PY = 20
+  const chartW = W - PX * 2, chartH = H - PY * 2
+  const maxExec = Math.max(...recent.map(r => r.exec_count), 1)
+
+  const execPoints = recent.map((r, i) => ({
+    x: PX + (i / (recent.length - 1)) * chartW,
+    y: PY + chartH - (r.exec_count / maxExec) * chartH
+  }))
+  const ratePoints = recent.map((r, i) => {
+    const rate = r.exec_count === 0 ? 0 : r.success_count / r.exec_count
+    return {
+      x: PX + (i / (recent.length - 1)) * chartW,
+      y: PY + chartH - rate * chartH
+    }
+  })
+
+  const toPolyline = (pts) => pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
+
+  const yLabelsExec = [0, Math.ceil(maxExec / 2), maxExec]
+  const yLabelsRate = ['0%', '50%', '100%']
+
+  return (
+    <div className="review-section">
+      <div className="review-section-title">执行趋势</div>
+      <div className="review-section-sub">近 14 天执行次数与成功率变化</div>
+      <div className="trend-chart-wrap">
+        <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet">
+          {[0, 0.5, 1].map((ratio, i) => (
+            <line key={i} x1={PX} x2={W - PX} y1={PY + chartH * (1 - ratio)} y2={PY + chartH * (1 - ratio)} stroke="#E5E7EB" strokeWidth="0.5" />
+          ))}
+          {yLabelsExec.map((v, i) => (
+            <text key={`l${i}`} x={PX - 4} y={PY + chartH * (1 - i / 2)} fontSize="8" fill="#9CA3AF" textAnchor="end" dominantBaseline="middle">{v}</text>
+          ))}
+          {yLabelsRate.map((v, i) => (
+            <text key={`r${i}`} x={W - PX + 4} y={PY + chartH * (1 - i / 2)} fontSize="8" fill="#9CA3AF" textAnchor="start" dominantBaseline="middle">{v}</text>
+          ))}
+          <polyline points={toPolyline(execPoints)} fill="none" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <polyline points={toPolyline(ratePoints)} fill="none" stroke="#36D399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 2" />
+          {execPoints.map((p, i) => <circle key={`e${i}`} cx={p.x} cy={p.y} r="2.5" fill="#6366F1" />)}
+          {ratePoints.map((p, i) => <circle key={`r${i}`} cx={p.x} cy={p.y} r="2.5" fill="#36D399" />)}
+        </svg>
+      </div>
+      <div className="trend-legend">
+        <span className="trend-legend-item"><span className="trend-legend-line" style={{ background: '#6366F1' }} />执行次数</span>
+        <span className="trend-legend-item"><span className="trend-legend-line dashed" style={{ background: '#36D399' }} />成功率</span>
+      </div>
+    </div>
+  )
+}
+
 // ─── 雷达图（纯 SVG） ─────────────────────────────────────────
 function RadarChart({ snapshots }) {
   const [compareIdx, setCompareIdx] = useState(0)
@@ -360,6 +415,7 @@ export default function ReviewPage() {
       <div className="page-body review-page-body">
         <StatsOverview dailyRecords={dailyRecords} />
         <HeatmapCalendar dailyRecords={dailyRecords} />
+        <TrendChart dailyRecords={dailyRecords} />
         {snapshots.length >= 2 && <RadarChart snapshots={snapshots} />}
         <EvolutionTree nodes={evolutionNodes} />
         <ReviewHistory reviews={reviews} />

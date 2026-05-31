@@ -47,15 +47,20 @@ const DRAFT_KEYS = [
   { key: 'draft_create_inspiration', label: '灵感' }
 ]
 
-function DraftReminder({ onResume }) {
+function DraftReminder({ onResume, onClear }) {
+  const [cleared, setCleared] = useState(false)
   const drafts = DRAFT_KEYS.filter(({ key }) => {
     try { const v = localStorage.getItem(key); return v && v !== '{}' && v !== 'null' } catch { return false }
   })
-  if (drafts.length === 0) return null
+  if (cleared || drafts.length === 0) return null
   return (
     <div className="draft-reminder">
-      <span className="draft-reminder-icon">📝</span>
-      <span className="draft-reminder-text">您有 {drafts.length} 条未完成录入（{drafts.map(d => d.label).join('、')}）</span>
+      <div className="draft-reminder-body" onClick={() => onResume?.(drafts[0].key)}>
+        <span className="draft-reminder-icon">📝</span>
+        <span className="draft-reminder-text">您有 {drafts.length} 条未完成录入（{drafts.map(d => d.label).join('、')}）</span>
+        <span className="draft-reminder-action">继续填写 →</span>
+      </div>
+      <button className="draft-reminder-close" onClick={(e) => { e.stopPropagation(); onClear(); setCleared(true) }}>×</button>
     </div>
   )
 }
@@ -233,14 +238,19 @@ export default function HomePage({ onSwitchTab }) {
           <EvolutionJourney stages={stages} />
           <SmartSuggestion suggestion={suggestion} onAction={handleSuggestionAction} />
           <QuickActions onAddAction={() => setModal('action')} onAddMistake={() => setModal('mistake')} onAddPositiveLaw={() => setModal('positive_law')} onAddNegativeLaw={() => setModal('negative_law')} onCheckin={() => setModal('checkin')} onAddInspiration={() => setModal('inspiration')} />
-          <DraftReminder />
+          <DraftReminder onResume={(key) => {
+            if (key === 'draft_create_action') setModal('action')
+            else if (key === 'draft_create_mistake') setModal('mistake')
+            else if (key === 'draft_create_law') setModal('positive_law')
+            else if (key === 'draft_create_inspiration') setModal('inspiration')
+          }} onClear={() => { DRAFT_KEYS.forEach(({ key }) => localStorage.removeItem(key)) }} />
           <TodoSection todos={todos} onDismiss={handleDismiss} onMigrateClick={handleMigrateClick} />
           <RankSection categories={categories} />
         </>)}
       </div>
 
       <CheckinModal visible={modal === 'checkin'} actions={actions} onClose={() => setModal(null)} onSubmit={handleCheckin} checkNegativeLaws={api.checkNegativeLaws} />
-      <CreateActionModal visible={modal === 'action'} categories={categories} onClose={() => setModal(null)} onSubmit={handleAddAction} />
+      <CreateActionModal visible={modal === 'action'} categories={categories} laws={laws} onClose={() => setModal(null)} onSubmit={handleAddAction} />
       <CreateMistakeModal visible={modal === 'mistake'} categories={categories} laws={laws} onClose={() => setModal(null)} onSubmit={handleAddMistake} />
       <CreateInspirationModal visible={modal === 'inspiration'} categories={categories} onClose={() => setModal(null)} onSubmit={handleAddInspiration} />
       <CreateLawModal visible={modal === 'positive_law'} lawType={1} categories={categories} actions={actions} onClose={() => setModal(null)} onSubmit={handleAddLaw} />

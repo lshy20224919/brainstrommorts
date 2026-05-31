@@ -69,32 +69,24 @@ export default function CardLibPage() {
   const toast = useToast()
 
   useEffect(() => { api.getCategories().then(setCategories) }, [])
-  useEffect(() => { loadActions() }, [filterCategory])
-  useEffect(() => { loadLaws() }, [filterCategory])
-  useEffect(() => { loadMistakes() }, [filterCategory])
-  useEffect(() => { loadInspirations() }, [filterCategory])
+  useEffect(() => { loadAll() }, [filterCategory])
 
-  const loadActions = async () => {
+  const loadAll = async () => {
     setLoading(true)
-    const params = { status: 0 }
-    if (filterCategory) params.category_id = Number(filterCategory)
-    setActions(await api.getActions(params)); setLoading(false)
+    const catParams = filterCategory ? { category_id: Number(filterCategory) } : {}
+    const [acts, lws, msts, insps] = await Promise.all([
+      api.getActions({ status: 0, ...catParams }),
+      api.getLaws(catParams),
+      api.getMistakes({ status: 0, ...catParams }),
+      api.getInspirations({ status: 0 })
+    ])
+    setActions(acts); setLaws(lws); setMistakes(msts); setInspirations(insps)
+    setLoading(false)
   }
-  const loadLaws = async () => {
-    setLoading(true)
-    const params = {}
-    if (filterCategory) params.category_id = Number(filterCategory)
-    setLaws(await api.getLaws(params)); setLoading(false)
-  }
-  const loadMistakes = async () => {
-    setLoading(true)
-    const params = { status: 0 }
-    if (filterCategory) params.category_id = Number(filterCategory)
-    setMistakes(await api.getMistakes(params)); setLoading(false)
-  }
-  const loadInspirations = async () => {
-    setInspirations(await api.getInspirations({ status: 0 }))
-  }
+  const loadActions = async () => { const params = { status: 0 }; if (filterCategory) params.category_id = Number(filterCategory); setActions(await api.getActions(params)) }
+  const loadLaws = async () => { const params = {}; if (filterCategory) params.category_id = Number(filterCategory); setLaws(await api.getLaws(params)) }
+  const loadMistakes = async () => { const params = { status: 0 }; if (filterCategory) params.category_id = Number(filterCategory); setMistakes(await api.getMistakes(params)) }
+  const loadInspirations = async () => { setInspirations(await api.getInspirations({ status: 0 })) }
 
   const handlePrimaryTabChange = (tab) => {
     setPrimaryTab(tab)
@@ -309,8 +301,8 @@ export default function CardLibPage() {
       {/* Modals */}
       <ActionSheet visible={!!actionSheet} actions={actionSheet?.actions || []} onClose={() => setActionSheet(null)} />
       <CheckinModal visible={!!checkinTarget} action={checkinTarget} onClose={() => setCheckinTarget(null)} onSubmit={data => handleCheckin(checkinTarget, data)} checkNegativeLaws={api.checkNegativeLaws} />
-      <CreateActionModal visible={showCreateAction} categories={categories} onClose={() => setShowCreateAction(false)} onSubmit={handleCreateAction} />
-      <CreateActionModal visible={!!editActionTarget} categories={categories} initial={editActionTarget} onClose={() => setEditActionTarget(null)} onSubmit={handleEditAction} />
+      <CreateActionModal visible={showCreateAction} categories={categories} laws={laws} onClose={() => setShowCreateAction(false)} onSubmit={handleCreateAction} />
+      <CreateActionModal visible={!!editActionTarget} categories={categories} laws={laws} initial={editActionTarget} onClose={() => setEditActionTarget(null)} onSubmit={handleEditAction} />
       <CreateLawModal visible={showCreateLaw} categories={categories} actions={actions.filter(a => a.status === 0)} onClose={() => setShowCreateLaw(false)} onSubmit={handleCreateLaw} />
       <CreateLawModal visible={!!editLawTarget} categories={categories} actions={actions.filter(a => a.status === 0)} initial={editLawTarget} onClose={() => setEditLawTarget(null)} onSubmit={handleEditLaw} />
       <CreateMistakeModal visible={showCreateMistake} categories={categories} laws={laws} onClose={() => setShowCreateMistake(false)} onSubmit={handleCreateMistake} />

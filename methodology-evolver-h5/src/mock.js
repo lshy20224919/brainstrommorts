@@ -14,10 +14,10 @@ const defaultData = {
     { id: 4, name: '工作', icon: '💼', color: '#96CEB4', sort_weight: 4, is_system_default: 1 }
   ],
   actions: [
-    { id: 1, category_id: 1, name: '低吸高抛', remark: '在股票低估时买入，高估时卖出', subjective_weight: 9, status: 0, pinned: 1, exec_count: 8, success_count: 6, fail_count: 2, success_rate: 75.00, last_exec_time: new Date(Date.now() - 3 * 86400000).toISOString() },
-    { id: 2, category_id: 1, name: '定投指数基金', remark: '每月固定日期投入固定金额', subjective_weight: 8, status: 0, pinned: 0, exec_count: 12, success_count: 10, fail_count: 2, success_rate: 83.33, last_exec_time: new Date(Date.now() - 1 * 86400000).toISOString() },
-    { id: 3, category_id: 2, name: '晨跑5公里', remark: '每天早晨跑步5公里，保持体能', subjective_weight: 7, status: 0, pinned: 0, exec_count: 45, success_count: 40, fail_count: 5, success_rate: 88.89, last_exec_time: new Date(Date.now() - 8 * 86400000).toISOString() },
-    { id: 4, category_id: 3, name: '每日阅读30分钟', remark: '睡前阅读，积累知识', subjective_weight: 6, status: 0, pinned: 0, exec_count: 20, success_count: 15, fail_count: 5, success_rate: 75.00, last_exec_time: new Date(Date.now() - 10 * 86400000).toISOString() }
+    { id: 1, category_id: 1, name: '低吸高抛', remark: '在股票低估时买入，高估时卖出', subjective_weight: 9, status: 0, pinned: 1, exec_count: 8, success_count: 6, fail_count: 2, success_rate: 75.00, last_exec_time: new Date(Date.now() - 3 * 86400000).toISOString(), related_law_ids: [1, 3] },
+    { id: 2, category_id: 1, name: '定投指数基金', remark: '每月固定日期投入固定金额', subjective_weight: 8, status: 0, pinned: 0, exec_count: 12, success_count: 10, fail_count: 2, success_rate: 83.33, last_exec_time: new Date(Date.now() - 1 * 86400000).toISOString(), related_law_ids: [] },
+    { id: 3, category_id: 2, name: '晨跑5公里', remark: '每天早晨跑步5公里，保持体能', subjective_weight: 7, status: 0, pinned: 0, exec_count: 45, success_count: 40, fail_count: 5, success_rate: 88.89, last_exec_time: new Date(Date.now() - 8 * 86400000).toISOString(), related_law_ids: [2] },
+    { id: 4, category_id: 3, name: '每日阅读30分钟', remark: '睡前阅读，积累知识', subjective_weight: 6, status: 0, pinned: 0, exec_count: 20, success_count: 15, fail_count: 5, success_rate: 75.00, last_exec_time: new Date(Date.now() - 10 * 86400000).toISOString(), related_law_ids: [4] }
   ],
   laws: [
     { id: 1, category_id: 1, related_action_id: 1, law_type: 1, law_desc: '行情震荡期，低吸高抛容错率更高', applicable_scenes: '股票、可转债等波动性资产', subjective_weight: 9, trigger_count: 32, status: 0, popup_enabled: 1 },
@@ -194,7 +194,7 @@ export const api = {
   getAction: async (id) => { await delay(); return mockApi.actions.find(a => a.id === id) },
   createAction: async (data) => {
     await delay()
-    const action = { id: Date.now(), exec_count: 0, success_count: 0, fail_count: 0, success_rate: null, status: 0, pinned: 0, last_exec_time: null, ...data }
+    const action = { id: Date.now(), exec_count: 0, success_count: 0, fail_count: 0, success_rate: null, status: 0, pinned: 0, last_exec_time: null, related_law_ids: [], ...data }
     mockApi.actions.push(action); persist()
     return action
   },
