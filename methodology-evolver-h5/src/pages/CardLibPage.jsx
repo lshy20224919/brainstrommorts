@@ -9,6 +9,9 @@ import CreateMistakeModal from '../components/CreateMistakeModal'
 import CreateInspirationModal from '../components/CreateInspirationModal'
 import MigrateModal from '../components/MigrateModal'
 import ActionDetailPanel from '../components/ActionDetailPanel'
+import MistakeDetailPanel from '../components/MistakeDetailPanel'
+import LawDetailPanel from '../components/LawDetailPanel'
+import InspirationDetailPanel from '../components/InspirationDetailPanel'
 import Loading from '../components/Loading'
 
 function UnifiedCard({ title, badge, badgeClass, meta, data, borderColor, onClick, onLongPress }) {
@@ -59,6 +62,9 @@ export default function CardLibPage() {
   const [showCreateInspiration, setShowCreateInspiration] = useState(false)
   const [migrateTarget, setMigrateTarget] = useState(null)
   const [detailAction, setDetailAction] = useState(null)
+  const [detailMistake, setDetailMistake] = useState(null)
+  const [detailLaw, setDetailLaw] = useState(null)
+  const [detailInspiration, setDetailInspiration] = useState(null)
 
   const toast = useToast()
 
@@ -177,9 +183,9 @@ export default function CardLibPage() {
   const openInspirationSheet = (insp) => {
     setActionSheet({
       actions: [
-        { icon: '✅', label: '转为正确的事', onClick: async () => { await api.convertInspiration(insp.id, 'action'); loadInspirations(); setActionSheet(null); toast.success('已转化') } },
-        { icon: '⛔', label: '转为错误的事', onClick: async () => { await api.convertInspiration(insp.id, 'mistake'); loadInspirations(); setActionSheet(null); toast.success('已转化') } },
-        { icon: '💡', label: '转为规律', onClick: async () => { await api.convertInspiration(insp.id, 'law'); loadInspirations(); setActionSheet(null); toast.success('已转化') } },
+        { icon: '✅', label: '转为正确的事', onClick: async () => { await api.convertInspiration(insp.id, 'action'); loadInspirations(); setActionSheet(null); setEditActionTarget({ name: insp.desc, category_id: insp.category_id }) } },
+        { icon: '⛔', label: '转为错误的事', onClick: async () => { await api.convertInspiration(insp.id, 'mistake'); loadInspirations(); setActionSheet(null); setEditMistakeTarget({ name: insp.desc, category_id: insp.category_id }) } },
+        { icon: '💡', label: '转为规律', onClick: async () => { await api.convertInspiration(insp.id, 'law'); loadInspirations(); setActionSheet(null); setEditLawTarget({ law_desc: insp.desc, category_id: insp.category_id }) } },
         { icon: '🗑️', label: '删除', danger: true, onClick: async () => { await api.deleteInspiration(insp.id); loadInspirations(); toast.success('已删除') } }
       ]
     })
@@ -228,7 +234,7 @@ export default function CardLibPage() {
       return list.map(mistake => {
         const cat = getCategory(mistake.category_id)
         const relatedCount = (mistake.related_law_ids || []).length
-        return <UnifiedCard key={mistake.id} title={mistake.name} badge="红线" badgeClass="badge-redline" meta={<>{cat?.icon} {cat?.name}</>} data={<>权重 {mistake.subjective_weight} · 关联 {relatedCount} 条规律</>} borderColor="#FF6B35" onClick={() => {}} onLongPress={() => openMistakeSheet(mistake)} />
+        return <UnifiedCard key={mistake.id} title={mistake.name} badge="红线" badgeClass="badge-redline" meta={<>{cat?.icon} {cat?.name}</>} data={<>权重 {mistake.subjective_weight} · 关联 {relatedCount} 条规律</>} borderColor="#FF6B35" onClick={() => setDetailMistake(mistake)} onLongPress={() => openMistakeSheet(mistake)} />
       })
     }
 
@@ -239,7 +245,7 @@ export default function CardLibPage() {
       return list.map(law => {
         const cat = getCategory(law.category_id)
         const relatedAction = law.related_action_id ? getAction(law.related_action_id) : null
-        return <UnifiedCard key={law.id} title={law.law_desc} meta={<>{cat?.icon} {cat?.name}{relatedAction ? ` · 关联：${relatedAction.name}` : ''}</>} data={<>触发 {law.trigger_count} 次 · 权重 {law.subjective_weight}</>} borderColor={type === 1 ? '#36D399' : '#F87272'} onClick={() => {}} onLongPress={() => openLawSheet(law)} />
+        return <UnifiedCard key={law.id} title={law.law_desc} meta={<>{cat?.icon} {cat?.name}{relatedAction ? ` · 关联：${relatedAction.name}` : ''}</>} data={<>触发 {law.trigger_count} 次 · 权重 {law.subjective_weight}</>} borderColor={type === 1 ? '#36D399' : '#F87272'} onClick={() => setDetailLaw(law)} onLongPress={() => openLawSheet(law)} />
       })
     }
 
@@ -249,7 +255,7 @@ export default function CardLibPage() {
       if (list.length === 0) return <div className="empty-state"><span className="empty-icon">💡</span><span className="empty-text">暂无{dir === 'positive' ? '正向' : '负向'}灵感</span></div>
       return list.map(insp => {
         const cat = getCategory(insp.category_id)
-        return <UnifiedCard key={insp.id} title={insp.desc} meta={<>{cat ? `${cat.icon} ${cat.name}` : ''}{insp.source ? ` · 来源：${insp.source}` : ''}</>} data={new Date(insp.created_time).toLocaleDateString()} borderColor={dir === 'positive' ? '#FBBF24' : '#A78BFA'} onClick={() => {}} onLongPress={() => openInspirationSheet(insp)} />
+        return <UnifiedCard key={insp.id} title={insp.desc} meta={<>{cat ? `${cat.icon} ${cat.name}` : ''}{insp.source ? ` · 来源：${insp.source}` : ''}</>} data={new Date(insp.created_time).toLocaleDateString()} borderColor={dir === 'positive' ? '#FBBF24' : '#A78BFA'} onClick={() => setDetailInspiration(insp)} onLongPress={() => openInspirationSheet(insp)} />
       })
     }
   }
@@ -312,6 +318,9 @@ export default function CardLibPage() {
       <CreateInspirationModal visible={showCreateInspiration} categories={categories} onClose={() => setShowCreateInspiration(false)} onSubmit={handleCreateInspiration} />
       <MigrateModal visible={!!migrateTarget} categories={categories} currentCategoryId={migrateTarget?.category_id} onClose={() => setMigrateTarget(null)} onConfirm={handleMigrate} />
       <ActionDetailPanel visible={!!detailAction} action={detailAction} category={detailAction ? getCategory(detailAction.category_id) : null} onClose={() => setDetailAction(null)} />
+      <MistakeDetailPanel visible={!!detailMistake} mistake={detailMistake} category={detailMistake ? getCategory(detailMistake.category_id) : null} onClose={() => setDetailMistake(null)} />
+      <LawDetailPanel visible={!!detailLaw} law={detailLaw} category={detailLaw ? getCategory(detailLaw.category_id) : null} onClose={() => setDetailLaw(null)} />
+      <InspirationDetailPanel visible={!!detailInspiration} inspiration={detailInspiration} category={detailInspiration ? getCategory(detailInspiration.category_id) : null} onClose={() => setDetailInspiration(null)} />
     </div>
   )
 }

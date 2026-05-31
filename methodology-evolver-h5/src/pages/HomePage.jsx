@@ -12,6 +12,54 @@ import SmartSuggestion from '../components/SmartSuggestion'
 import PostActionGuide from '../components/PostActionGuide'
 import Loading from '../components/Loading'
 
+function DataDashboard({ stats }) {
+  if (!stats) return null
+  return (
+    <div className="data-dashboard">
+      <div className="dashboard-item">
+        <div className="dashboard-value">{stats.action_count}</div>
+        <div className="dashboard-label">正确的事</div>
+        <div className="dashboard-sub">触发 {stats.action_trigger_count} 次</div>
+      </div>
+      <div className="dashboard-item">
+        <div className="dashboard-value">{stats.mistake_count}</div>
+        <div className="dashboard-label">错误的事</div>
+        <div className="dashboard-sub">—</div>
+      </div>
+      <div className="dashboard-item">
+        <div className="dashboard-value">{stats.positive_law_count}</div>
+        <div className="dashboard-label">正向规律</div>
+        <div className="dashboard-sub">触发 {stats.positive_law_trigger_count} 次</div>
+      </div>
+      <div className="dashboard-item">
+        <div className="dashboard-value">{stats.negative_law_count}</div>
+        <div className="dashboard-label">负向规律</div>
+        <div className="dashboard-sub">触发 {stats.negative_law_trigger_count} 次</div>
+      </div>
+    </div>
+  )
+}
+
+const DRAFT_KEYS = [
+  { key: 'draft_create_action', label: '正确的事' },
+  { key: 'draft_create_mistake', label: '错误的事' },
+  { key: 'draft_create_law', label: '规律' },
+  { key: 'draft_create_inspiration', label: '灵感' }
+]
+
+function DraftReminder({ onResume }) {
+  const drafts = DRAFT_KEYS.filter(({ key }) => {
+    try { const v = localStorage.getItem(key); return v && v !== '{}' && v !== 'null' } catch { return false }
+  })
+  if (drafts.length === 0) return null
+  return (
+    <div className="draft-reminder">
+      <span className="draft-reminder-icon">📝</span>
+      <span className="draft-reminder-text">您有 {drafts.length} 条未完成录入（{drafts.map(d => d.label).join('、')}）</span>
+    </div>
+  )
+}
+
 function QuickActions({ onAddAction, onAddPositiveLaw, onAddNegativeLaw, onAddMistake, onCheckin, onAddInspiration }) {
   return (
     <div className="quick-actions">
@@ -114,6 +162,7 @@ function RankSection({ categories }) {
 
 export default function HomePage({ onSwitchTab }) {
   const [stages, setStages] = useState([])
+  const [stats, setStats] = useState(null)
   const [suggestion, setSuggestion] = useState(null)
   const [todos, setTodos] = useState([])
   const [categories, setCategories] = useState([])
@@ -131,10 +180,10 @@ export default function HomePage({ onSwitchTab }) {
 
   const loadData = async () => {
     setLoading(true)
-    const [stg, sug, t, cats, acts, lws] = await Promise.all([
-      api.getEvolutionProgress(), api.getSmartSuggestion(), api.getTodos(), api.getCategories(), api.getActions({ status: 0 }), api.getLaws({ status: 0 })
+    const [stg, sug, t, cats, acts, lws, st] = await Promise.all([
+      api.getEvolutionProgress(), api.getSmartSuggestion(), api.getTodos(), api.getCategories(), api.getActions({ status: 0 }), api.getLaws({ status: 0 }), api.getHomeStats()
     ])
-    setStages(stg); setSuggestion(sug); setTodos(t); setCategories(cats); setActions(acts); setLaws(lws); setLoading(false)
+    setStages(stg); setSuggestion(sug); setTodos(t); setCategories(cats); setActions(acts); setLaws(lws); setStats(st); setLoading(false)
   }
 
   const handleDismiss = async (key) => { await api.dismissTodo(key); setTodos(prev => prev.filter(t => t.key !== key)) }
@@ -180,9 +229,11 @@ export default function HomePage({ onSwitchTab }) {
       <div className="page-header"><h1 className="page-title">方法论进化器</h1></div>
       <div className="page-body">
         {loading ? <Loading rows={4} /> : (<>
+          <DataDashboard stats={stats} />
           <EvolutionJourney stages={stages} />
           <SmartSuggestion suggestion={suggestion} onAction={handleSuggestionAction} />
           <QuickActions onAddAction={() => setModal('action')} onAddMistake={() => setModal('mistake')} onAddPositiveLaw={() => setModal('positive_law')} onAddNegativeLaw={() => setModal('negative_law')} onCheckin={() => setModal('checkin')} onAddInspiration={() => setModal('inspiration')} />
+          <DraftReminder />
           <TodoSection todos={todos} onDismiss={handleDismiss} onMigrateClick={handleMigrateClick} />
           <RankSection categories={categories} />
         </>)}

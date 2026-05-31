@@ -250,6 +250,8 @@ export const api = {
     if (params.status !== undefined) list = list.filter(l => l.status === params.status)
     return [...list]
   },
+  getLaw: async (id) => { await delay(); return mockApi.laws.find(l => l.id === id) },
+  getLawsByIds: async (ids) => { await delay(); return mockApi.laws.filter(l => ids.includes(l.id)) },
   createLaw: async (data) => {
     await delay()
     const law = { id: Date.now(), trigger_count: 0, status: 0, popup_enabled: 1, ...data }
@@ -309,6 +311,7 @@ export const api = {
     if (params.status !== undefined) list = list.filter(i => i.status === params.status)
     return [...list].sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
   },
+  getInspiration: async (id) => { await delay(); return mockApi.inspirations.find(i => i.id === id) },
   createInspiration: async (data) => {
     await delay()
     const item = { id: Date.now(), status: 0, created_time: new Date().toISOString(), ...data }
