@@ -168,6 +168,7 @@ const mockDB = {
       desc: '低估值买入的逻辑可能也适用于二手房市场',
       source: '书籍',
       category_id: 1,
+      direction: 'positive',
       status: 0,
       created_time: '2024-04-10T09:00:00Z'
     },
@@ -176,6 +177,7 @@ const mockDB = {
       desc: '间歇性断食可能比持续节食更有效',
       source: '播客',
       category_id: 2,
+      direction: 'positive',
       status: 0,
       created_time: '2024-04-12T15:30:00Z'
     },
@@ -184,8 +186,18 @@ const mockDB = {
       desc: '费曼学习法的核心是输出倒逼输入，可以用在投资复盘上',
       source: '视频',
       category_id: 3,
+      direction: 'positive',
       status: 1,
       created_time: '2024-04-08T20:00:00Z'
+    },
+    {
+      id: 4,
+      desc: '频繁看盘会导致情绪化操作增多',
+      source: '聊天',
+      category_id: 1,
+      direction: 'negative',
+      status: 0,
+      created_time: '2024-04-11T14:00:00Z'
     }
   ],
   stats: {

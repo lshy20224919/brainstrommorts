@@ -31,9 +31,11 @@ const defaultData = {
     { id: 3, category_id: 2, name: '熬夜超过凌晨2点', remark: '严重损害第二天的判断力和体能', subjective_weight: 8, status: 0, pinned: 0, related_law_ids: [4] }
   ],
   inspirations: [
-    { id: 1, desc: '看到一个说法：仓位管理比选股更重要', source: '书籍', category_id: 1, status: 0, created_time: new Date(Date.now() - 5 * 86400000).toISOString() },
-    { id: 2, desc: '运动后30分钟内补充蛋白质，肌肉恢复效率翻倍', source: '视频', category_id: 2, status: 0, created_time: new Date(Date.now() - 2 * 86400000).toISOString() },
-    { id: 3, desc: '费曼学习法：教别人是最好的学习方式', source: '聊天', category_id: 3, status: 0, created_time: new Date(Date.now() - 1 * 86400000).toISOString() }
+    { id: 1, desc: '看到一个说法：仓位管理比选股更重要', source: '书籍', category_id: 1, direction: 'positive', status: 0, created_time: new Date(Date.now() - 5 * 86400000).toISOString() },
+    { id: 2, desc: '运动后30分钟内补充蛋白质，肌肉恢复效率翻倍', source: '视频', category_id: 2, direction: 'positive', status: 0, created_time: new Date(Date.now() - 2 * 86400000).toISOString() },
+    { id: 3, desc: '费曼学习法：教别人是最好的学习方式', source: '聊天', category_id: 3, direction: 'positive', status: 0, created_time: new Date(Date.now() - 1 * 86400000).toISOString() },
+    { id: 4, desc: '频繁切换任务会导致深度思考能力下降', source: '书籍', category_id: 3, direction: 'negative', status: 0, created_time: new Date(Date.now() - 4 * 86400000).toISOString() },
+    { id: 5, desc: '睡前看手机蓝光影响褪黑素分泌', source: '视频', category_id: 2, direction: 'negative', status: 0, created_time: new Date(Date.now() - 3 * 86400000).toISOString() }
   ],
   records: [
     { id: 1, action_id: 1, exec_result: 1, exec_remark: '抄底成功，盈利8%', exec_time: new Date(Date.now() - 3 * 86400000).toISOString() },

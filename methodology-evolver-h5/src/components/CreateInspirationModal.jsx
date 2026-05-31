@@ -6,11 +6,12 @@ const SOURCE_OPTIONS = ['书籍', '视频', '聊天', '播客', '文章', '自�
 
 export default function CreateInspirationModal({ visible, categories, onClose, onSubmit, initial }) {
   const draftKey = initial ? null : 'draft_create_inspiration'
-  const [draft, setDraft, clearDraft] = useDraft(draftKey, { desc: '', source: '', categoryId: '' })
+  const [draft, setDraft, clearDraft] = useDraft(draftKey, { desc: '', source: '', categoryId: '', direction: 'positive' })
 
   const [desc, setDesc] = useState(initial?.desc ?? draft.desc ?? '')
   const [source, setSource] = useState(initial?.source ?? draft.source ?? '')
   const [categoryId, setCategoryId] = useState(initial?.category_id?.toString() ?? draft.categoryId ?? '')
+  const [direction, setDirection] = useState(initial?.direction ?? draft.direction ?? 'positive')
 
   const updateDraft = (patch) => { if (draftKey) setDraft(prev => ({ ...prev, ...patch })) }
 
@@ -19,7 +20,8 @@ export default function CreateInspirationModal({ visible, categories, onClose, o
     onSubmit({
       desc: desc.trim(),
       source: source || null,
-      category_id: categoryId ? Number(categoryId) : null
+      category_id: categoryId ? Number(categoryId) : null,
+      direction
     })
     if (draftKey) clearDraft()
   }
@@ -28,6 +30,13 @@ export default function CreateInspirationModal({ visible, categories, onClose, o
 
   return (
     <Modal visible={visible} title={initial ? '编辑灵感' : '灵感捕捉'} onClose={onClose}>
+      <div className="g-form-group">
+        <div className="g-form-label">方向 *</div>
+        <div className="g-law-type-row">
+          <button className={`g-law-type-btn positive ${direction === 'positive' ? 'active' : ''}`} onClick={() => { setDirection('positive'); updateDraft({ direction: 'positive' }) }}>正向灵感</button>
+          <button className={`g-law-type-btn negative ${direction === 'negative' ? 'active' : ''}`} onClick={() => { setDirection('negative'); updateDraft({ direction: 'negative' }) }}>负向灵感</button>
+        </div>
+      </div>
       <div className="g-form-group">
         <div className="g-form-label">灵感内容 *</div>
         <textarea className="g-form-textarea" value={desc} onChange={e => { setDesc(e.target.value); updateDraft({ desc: e.target.value }) }} placeholder="快速记下你的想法或看到的好方法" maxLength={200} rows={3} />
