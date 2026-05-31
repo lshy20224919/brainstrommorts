@@ -1,12 +1,17 @@
 <template>
   <view class="page-index">
 
-    <!-- 数据看板：三列，正确的事/正向规律/负向规律 -->
+    <!-- 数据看板：四列 -->
     <view class="stats-board">
       <view class="stats-board-item">
         <text class="stats-board-label">正确的事</text>
         <text class="stats-board-value">{{ stats.action_count || 0 }}</text>
         <text class="stats-board-sub">触发 {{ stats.action_trigger_count || 0 }} 次</text>
+      </view>
+      <view class="stats-board-item">
+        <text class="stats-board-label">错误的事</text>
+        <text class="stats-board-value negative">{{ stats.mistake_count || 0 }}</text>
+        <text class="stats-board-sub">红线 {{ stats.mistake_count || 0 }} 条</text>
       </view>
       <view class="stats-board-item">
         <text class="stats-board-label">正向规律</text>
@@ -20,23 +25,31 @@
       </view>
     </view>
 
-    <!-- 快捷操作区：一行四格 -->
+    <!-- 快捷操作区：两行三列 -->
     <view class="quick-actions">
       <view class="quick-btn" @tap="goToPage('/pages/card/create?type=action')">
         <text class="quick-icon">➕</text>
         <text class="quick-text">正确的事</text>
       </view>
-      <view class="quick-btn" @tap="goToPage('/pages/law/create?type=positive')">
-        <text class="quick-icon">➕</text>
-        <text class="quick-text">正向规律</text>
-      </view>
-      <view class="quick-btn" @tap="goToPage('/pages/law/create?type=negative')">
-        <text class="quick-icon">➕</text>
-        <text class="quick-text">负向规律</text>
+      <view class="quick-btn" @tap="goToPage('/pages/mistake/create')">
+        <text class="quick-icon">🚫</text>
+        <text class="quick-text">错误的事</text>
       </view>
       <view class="quick-btn" @tap="showCheckin">
         <text class="quick-icon">✅</text>
         <text class="quick-text">打卡</text>
+      </view>
+      <view class="quick-btn" @tap="goToPage('/pages/law/create?type=positive')">
+        <text class="quick-icon">📈</text>
+        <text class="quick-text">正向规律</text>
+      </view>
+      <view class="quick-btn" @tap="goToPage('/pages/law/create?type=negative')">
+        <text class="quick-icon">📉</text>
+        <text class="quick-text">负向规律</text>
+      </view>
+      <view class="quick-btn" @tap="goToPage('/pages/inspiration/create')">
+        <text class="quick-icon">💡</text>
+        <text class="quick-text">灵感捕捉</text>
       </view>
     </view>
 
@@ -88,15 +101,16 @@
             >
               <view class="rank-num" :class="{ top3: index < 3 }">{{ index + 1 }}</view>
               <view class="rank-info">
-                <text class="rank-name">{{ tab.key === 'action' ? item.action_name : item.law_desc }}</text>
-                <text class="rank-category">{{ item.category_name }}</text>
+                <text class="rank-name">{{ tab.key === 'action' ? item.action_name : (tab.key === 'mistake' ? item.name : item.law_desc) }}</text>
+                <text class="rank-category">{{ item.category_name || item.category }}</text>
               </view>
               <view class="rank-stats">
                 <text class="rank-count" v-if="tab.key === 'action'">{{ item.exec_count }} 次</text>
                 <text class="rank-rate" :class="{ high: item.success_rate >= 60 }" v-if="tab.key === 'action'">
                   {{ item.success_rate != null ? item.success_rate + '%' : '暂无' }}
                 </text>
-                <text class="rank-count" v-if="tab.key !== 'action'">触发 {{ item.trigger_count }} 次</text>
+                <text class="rank-count" v-if="tab.key === 'mistake'">权重 {{ item.subjective_weight }}</text>
+                <text class="rank-count" v-if="tab.key !== 'action' && tab.key !== 'mistake'">触发 {{ item.trigger_count }} 次</text>
               </view>
             </view>
           </view>
@@ -181,6 +195,7 @@ import api from '@/utils/api.js'
 
 const RANK_TABS = [
   { key: 'action', label: '正确的事' },
+  { key: 'mistake', label: '错误的事' },
   { key: 'positive_law', label: '正向规律' },
   { key: 'negative_law', label: '负向规律' }
 ]
@@ -192,10 +207,10 @@ export default {
       stats: {},
       todos: [],
       actionsList: [],
-      rankings: { action: [], positive_law: [], negative_law: [] },
+      rankings: { action: [], mistake: [], positive_law: [], negative_law: [] },
       rankTabs: RANK_TABS,
       rankIndex: 0,
-      rankConfig: { action: 5, positive_law: 3, negative_law: 3 },
+      rankConfig: { action: 5, mistake: 3, positive_law: 3, negative_law: 3 },
       rankConfigDraft: {},
       showCheckinModal: false,
       showRankConfig: false,
@@ -247,13 +262,15 @@ export default {
 
     async fetchRankings() {
       try {
-        const [actionRank, positiveLawRank, negativeLawRank] = await Promise.all([
+        const [actionRank, mistakeRank, positiveLawRank, negativeLawRank] = await Promise.all([
           api.stats.ranking({ type: 'action', limit: this.rankConfig.action }),
+          api.stats.ranking({ type: 'mistake', limit: this.rankConfig.mistake }),
           api.stats.ranking({ type: 'positive_law', limit: this.rankConfig.positive_law }),
           api.stats.ranking({ type: 'negative_law', limit: this.rankConfig.negative_law })
         ])
         this.rankings = {
           action: actionRank.data || [],
+          mistake: mistakeRank.data || [],
           positive_law: positiveLawRank.data || [],
           negative_law: negativeLawRank.data || []
         }
@@ -344,7 +361,7 @@ export default {
 /* 数据看板 */
 .stats-board {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 20rpx;
   margin-bottom: 30rpx;
 }
@@ -386,8 +403,8 @@ export default {
 /* 快捷操作区 */
 .quick-actions {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16rpx;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12rpx;
   margin-bottom: 30rpx;
 }
 

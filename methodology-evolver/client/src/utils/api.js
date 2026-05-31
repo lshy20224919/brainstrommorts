@@ -81,9 +81,18 @@ const api = {
     checkWarnings: (params) => request({ url: '/laws/warnings/check', data: params }),
     logWarning: (data) => request({ url: '/laws/warnings/log', method: 'POST', data })
   },
+  mistakes: {
+    list: (params) => request({ url: '/mistakes', data: params }),
+    detail: (id) => request({ url: `/mistakes/${id}` }),
+    create: (data) => request({ url: '/mistakes', method: 'POST', data }),
+    update: (id, data) => request({ url: `/mistakes/${id}`, method: 'PUT', data }),
+    delete: (id) => request({ url: `/mistakes/${id}`, method: 'DELETE' })
+  },
   stats: {
     dashboard: () => request({ url: '/stats/dashboard' }),
-    ranking: (params) => request({ url: '/stats/ranking', data: params })
+    ranking: (params) => request({ url: '/stats/ranking', data: params }),
+    todos: () => request({ url: '/stats/todos' }),
+    dismissTodo: (data) => request({ url: '/stats/todos/dismiss', method: 'POST', data })
   },
   migrate: {
     recommend: (params) => request({ url: '/migrate/recommend', data: params }),
@@ -105,6 +114,13 @@ const api = {
     update: (id, data) => request({ url: `/sops/${id}`, method: 'PUT', data }),
     delete: (id) => request({ url: `/sops/${id}`, method: 'DELETE' }),
     execute: (id, data) => request({ url: `/sops/${id}/execute`, method: 'POST', data })
+  },
+  inspirations: {
+    list: (params) => request({ url: '/inspirations', data: params }),
+    create: (data) => request({ url: '/inspirations', method: 'POST', data }),
+    update: (id, data) => request({ url: `/inspirations/${id}`, method: 'PUT', data }),
+    delete: (id) => request({ url: `/inspirations/${id}`, method: 'DELETE' }),
+    convert: (id, data) => request({ url: `/inspirations/${id}/convert`, method: 'POST', data })
   },
   storage: {
     backup: () => request({ url: '/storage/backup', method: 'POST' }),

@@ -1,5 +1,5 @@
 // Mock数据 - 方法论进化器 H5 版
-const DATA_VERSION = 2
+const DATA_VERSION = 4
 const STORAGE_KEY = 'methodology_evolver_data'
 const POPUP_LOG_KEY = 'methodology_evolver_popup_log'
 
@@ -25,6 +25,16 @@ const defaultData = {
     { id: 3, category_id: 1, related_action_id: 1, law_type: 2, law_desc: '情绪化追涨，大概率短期被套', applicable_scenes: '股票交易', subjective_weight: 8, trigger_count: 6, status: 0, popup_enabled: 1 },
     { id: 4, category_id: 3, related_action_id: 4, law_type: 2, law_desc: '睡前刷手机超过30分钟，次日精力明显下降', applicable_scenes: '日常作息', subjective_weight: 6, trigger_count: 4, status: 0, popup_enabled: 1 }
   ],
+  mistakes: [
+    { id: 1, category_id: 1, name: '满仓单只股票', remark: '任何时候都不能把所有资金压在一只票上', subjective_weight: 10, status: 0, pinned: 1, related_law_ids: [3] },
+    { id: 2, category_id: 1, name: '情绪化追涨杀跌', remark: '看到涨就追、看到跌就割，是最大的亏损来源', subjective_weight: 9, status: 0, pinned: 0, related_law_ids: [3] },
+    { id: 3, category_id: 2, name: '熬夜超过凌晨2点', remark: '严重损害第二天的判断力和体能', subjective_weight: 8, status: 0, pinned: 0, related_law_ids: [4] }
+  ],
+  inspirations: [
+    { id: 1, desc: '看到一个说法：仓位管理比选股更重要', source: '书籍', category_id: 1, status: 0, created_time: new Date(Date.now() - 5 * 86400000).toISOString() },
+    { id: 2, desc: '运动后30分钟内补充蛋白质，肌肉恢复效率翻倍', source: '视频', category_id: 2, status: 0, created_time: new Date(Date.now() - 2 * 86400000).toISOString() },
+    { id: 3, desc: '费曼学习法：教别人是最好的学习方式', source: '聊天', category_id: 3, status: 0, created_time: new Date(Date.now() - 1 * 86400000).toISOString() }
+  ],
   records: [
     { id: 1, action_id: 1, exec_result: 1, exec_remark: '抄底成功，盈利8%', exec_time: new Date(Date.now() - 3 * 86400000).toISOString() },
     { id: 2, action_id: 2, exec_result: 1, exec_remark: '按计划定投', exec_time: new Date(Date.now() - 1 * 86400000).toISOString() }
@@ -41,7 +51,7 @@ const defaultData = {
     { id: 3, review_cycle: 'week', start_time: '2026-05-05', end_time: '2026-05-10', snapshot_version: 'v3', review_summary: null, create_time: '2026-05-10T20:00:00.000Z' }
   ],
   settings: { smart_migrate_on: true, warning_popup_on: true, dark_mode: 2, register_time: '2026-04-01T08:00:00.000Z' },
-  rankConfig: { action: 5, positive_law: 3, negative_law: 3 }
+  rankConfig: { action: 5, positive_law: 3, negative_law: 3, mistake: 3 }
 }
 // ─── 动态数据（不持久化） ──────────────────────────────────────
 const generateDailyRecords = () => {
@@ -92,7 +102,7 @@ function loadFromStorage() {
 function saveToStorage() {
   try {
     const toSave = { _version: DATA_VERSION }
-    const keys = ['categories', 'actions', 'laws', 'records', 'dismissedTodos', 'migrateLogs', 'sops', 'reviews', 'settings', 'rankConfig']
+    const keys = ['categories', 'actions', 'laws', 'mistakes', 'inspirations', 'records', 'dismissedTodos', 'migrateLogs', 'sops', 'reviews', 'settings', 'rankConfig']
     keys.forEach(k => { toSave[k] = mockApi[k] })
     localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
   } catch {}
@@ -122,13 +132,17 @@ const calcStats = () => {
   const actions = mockApi.actions.filter(a => a.status === 0)
   const positiveLaws = mockApi.laws.filter(l => l.law_type === 1 && l.status === 0)
   const negativeLaws = mockApi.laws.filter(l => l.law_type === 2 && l.status === 0)
+  const mistakes = mockApi.mistakes.filter(m => m.status === 0)
+  const inspirations = mockApi.inspirations.filter(i => i.status === 0)
   return {
     action_count: actions.length,
     action_trigger_count: actions.reduce((s, a) => s + a.exec_count, 0),
     positive_law_count: positiveLaws.length,
     positive_law_trigger_count: positiveLaws.reduce((s, l) => s + l.trigger_count, 0),
     negative_law_count: negativeLaws.length,
-    negative_law_trigger_count: negativeLaws.reduce((s, l) => s + l.trigger_count, 0)
+    negative_law_trigger_count: negativeLaws.reduce((s, l) => s + l.trigger_count, 0),
+    mistake_count: mistakes.length,
+    inspiration_count: inspirations.length
   }
 }
 
@@ -152,6 +166,7 @@ const calcRanking = (type) => {
   if (type === 'action') return [...mockApi.actions].filter(a => a.status === 0).sort((a, b) => b.subjective_weight - a.subjective_weight).slice(0, mockApi.rankConfig.action)
   if (type === 'positive_law') return [...mockApi.laws].filter(l => l.law_type === 1 && l.status === 0).sort((a, b) => b.subjective_weight - a.subjective_weight).slice(0, mockApi.rankConfig.positive_law)
   if (type === 'negative_law') return [...mockApi.laws].filter(l => l.law_type === 2 && l.status === 0).sort((a, b) => b.subjective_weight - a.subjective_weight).slice(0, mockApi.rankConfig.negative_law)
+  if (type === 'mistake') return [...mockApi.mistakes].filter(m => m.status === 0).sort((a, b) => b.subjective_weight - a.subjective_weight).slice(0, mockApi.rankConfig.mistake)
   return []
 }
 
@@ -252,6 +267,72 @@ export const api = {
     if (index === -1) throw new Error('规律不存在')
     mockApi.laws.splice(index, 1); persist()
     return { success: true }
+  },
+
+  // 错误的事
+  getMistakes: async (params = {}) => {
+    await delay()
+    let list = mockApi.mistakes
+    if (params.category_id) list = list.filter(m => m.category_id === params.category_id)
+    if (params.status !== undefined) list = list.filter(m => m.status === params.status)
+    return [...list]
+  },
+  getMistake: async (id) => { await delay(); return mockApi.mistakes.find(m => m.id === id) },
+  createMistake: async (data) => {
+    await delay()
+    const mistake = { id: Date.now(), status: 0, pinned: 0, related_law_ids: [], ...data }
+    mockApi.mistakes.push(mistake); persist()
+    return mistake
+  },
+  updateMistake: async (id, data) => {
+    await delay()
+    const idx = mockApi.mistakes.findIndex(m => m.id === id)
+    if (idx === -1) throw new Error('错误的事不存在')
+    Object.assign(mockApi.mistakes[idx], data); persist()
+    return mockApi.mistakes[idx]
+  },
+  deleteMistake: async (id) => {
+    await delay()
+    const index = mockApi.mistakes.findIndex(m => m.id === id)
+    if (index === -1) throw new Error('错误的事不存在')
+    mockApi.mistakes.splice(index, 1); persist()
+    return { success: true }
+  },
+
+  // 灵感捕捉
+  getInspirations: async (params = {}) => {
+    await delay()
+    let list = mockApi.inspirations
+    if (params.category_id) list = list.filter(i => i.category_id === params.category_id)
+    if (params.status !== undefined) list = list.filter(i => i.status === params.status)
+    return [...list].sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
+  },
+  createInspiration: async (data) => {
+    await delay()
+    const item = { id: Date.now(), status: 0, created_time: new Date().toISOString(), ...data }
+    mockApi.inspirations.push(item); persist()
+    return item
+  },
+  updateInspiration: async (id, data) => {
+    await delay()
+    const idx = mockApi.inspirations.findIndex(i => i.id === id)
+    if (idx === -1) throw new Error('灵感不存在')
+    Object.assign(mockApi.inspirations[idx], data); persist()
+    return mockApi.inspirations[idx]
+  },
+  deleteInspiration: async (id) => {
+    await delay()
+    const index = mockApi.inspirations.findIndex(i => i.id === id)
+    if (index === -1) throw new Error('灵感不存在')
+    mockApi.inspirations.splice(index, 1); persist()
+    return { success: true }
+  },
+  convertInspiration: async (id, targetType) => {
+    await delay()
+    const insp = mockApi.inspirations.find(i => i.id === id)
+    if (!insp) throw new Error('灵感不存在')
+    insp.status = 1; persist()
+    return { success: true, targetType }
   },
 
   // 避雷检测

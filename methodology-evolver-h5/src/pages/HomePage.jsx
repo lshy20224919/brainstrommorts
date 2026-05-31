@@ -4,19 +4,23 @@ import { useToast } from '../components/Toast'
 import CheckinModal from '../components/CheckinModal'
 import CreateActionModal from '../components/CreateActionModal'
 import CreateLawModal from '../components/CreateLawModal'
+import CreateMistakeModal from '../components/CreateMistakeModal'
+import CreateInspirationModal from '../components/CreateInspirationModal'
 import MigrateRecommendModal from '../components/MigrateRecommendModal'
 import EvolutionJourney from '../components/EvolutionJourney'
 import SmartSuggestion from '../components/SmartSuggestion'
 import PostActionGuide from '../components/PostActionGuide'
 import Loading from '../components/Loading'
 
-function QuickActions({ onAddAction, onAddPositiveLaw, onAddNegativeLaw, onCheckin }) {
+function QuickActions({ onAddAction, onAddPositiveLaw, onAddNegativeLaw, onAddMistake, onCheckin, onAddInspiration }) {
   return (
     <div className="quick-actions">
       <button className="quick-btn" onClick={onAddAction}><span className="quick-btn-icon">➕</span><span className="quick-btn-label">正确的事</span></button>
+      <button className="quick-btn" onClick={onAddMistake}><span className="quick-btn-icon">⛔</span><span className="quick-btn-label">错误的事</span></button>
+      <button className="quick-btn" onClick={onCheckin}><span className="quick-btn-icon">✅</span><span className="quick-btn-label">打卡</span></button>
       <button className="quick-btn" onClick={onAddPositiveLaw}><span className="quick-btn-icon">➕</span><span className="quick-btn-label">正向规律</span></button>
       <button className="quick-btn" onClick={onAddNegativeLaw}><span className="quick-btn-icon">➕</span><span className="quick-btn-label">负向规律</span></button>
-      <button className="quick-btn" onClick={onCheckin}><span className="quick-btn-icon">✅</span><span className="quick-btn-label">打卡</span></button>
+      <button className="quick-btn" onClick={onAddInspiration}><span className="quick-btn-icon">💡</span><span className="quick-btn-label">灵感捕捉</span></button>
     </div>
   )
 }
@@ -43,28 +47,29 @@ function TodoSection({ todos, onDismiss, onMigrateClick }) {
 }
 const RANK_TABS = [
   { key: 'action', label: '正确的事' },
+  { key: 'mistake', label: '错误的事' },
   { key: 'positive_law', label: '正向规律' },
   { key: 'negative_law', label: '负向规律' }
 ]
 
 function RankSection({ categories }) {
   const [rankIndex, setRankIndex] = useState(0)
-  const [rankings, setRankings] = useState({ action: [], positive_law: [], negative_law: [] })
-  const [rankConfig, setRankConfig] = useState({ action: 5, positive_law: 3, negative_law: 3 })
+  const [rankings, setRankings] = useState({ action: [], mistake: [], positive_law: [], negative_law: [] })
+  const [rankConfig, setRankConfig] = useState({ action: 5, mistake: 3, positive_law: 3, negative_law: 3 })
   const [showConfig, setShowConfig] = useState(false)
   const [configDraft, setConfigDraft] = useState(null)
   const touchStartX = useRef(null)
 
   useEffect(() => { loadRankings(); api.getRankConfig().then(setRankConfig) }, [])
   const loadRankings = async () => {
-    const [action, positive_law, negative_law] = await Promise.all([api.getRanking('action'), api.getRanking('positive_law'), api.getRanking('negative_law')])
-    setRankings({ action, positive_law, negative_law })
+    const [action, mistake, positive_law, negative_law] = await Promise.all([api.getRanking('action'), api.getRanking('mistake'), api.getRanking('positive_law'), api.getRanking('negative_law')])
+    setRankings({ action, mistake, positive_law, negative_law })
   }
   const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
   const handleTouchEnd = (e) => {
     if (touchStartX.current === null) return
     const diff = touchStartX.current - e.changedTouches[0].clientX
-    if (Math.abs(diff) > 50) { if (diff > 0) setRankIndex(i => Math.min(i + 1, 2)); else setRankIndex(i => Math.max(i - 1, 0)) }
+    if (Math.abs(diff) > 50) { if (diff > 0) setRankIndex(i => Math.min(i + 1, 3)); else setRankIndex(i => Math.max(i - 1, 0)) }
     touchStartX.current = null
   }
   const getCategoryName = (id) => categories.find(c => c.id === id)?.name ?? ''
@@ -85,7 +90,7 @@ function RankSection({ categories }) {
                 <span className={`rank-num ${index < 3 ? 'top3' : ''}`}>{index + 1}</span>
                 <div className="rank-info"><span className="rank-name">{item.name ?? item.law_desc}</span><span className="rank-category">{getCategoryName(item.category_id)}</span></div>
                 <div className="rank-stats">
-                  {currentKey === 'action' ? (<><span className="rank-count">{item.exec_count} 次</span><span className={`rank-rate ${item.success_rate >= 60 ? 'high' : ''}`}>{item.success_rate != null ? `${item.success_rate}%` : '暂无'}</span></>) : (<span className="rank-count">触发 {item.trigger_count} 次</span>)}
+                  {currentKey === 'action' ? (<><span className="rank-count">{item.exec_count} 次</span><span className={`rank-rate ${item.success_rate >= 60 ? 'high' : ''}`}>{item.success_rate != null ? `${item.success_rate}%` : '暂无'}</span></>) : currentKey === 'mistake' ? (<span className="rank-count">权重 {item.subjective_weight}</span>) : (<span className="rank-count">触发 {item.trigger_count} 次</span>)}
                 </div>
               </div>
             ))}
@@ -96,7 +101,7 @@ function RankSection({ categories }) {
         <div className="g-modal-mask" onClick={() => setShowConfig(false)}>
           <div className="g-modal-box" onClick={e => e.stopPropagation()}>
             <div className="g-modal-title">自定义榜单显示数量</div>
-            {[{ key: 'action', label: '正确的事' }, { key: 'positive_law', label: '正向规律' }, { key: 'negative_law', label: '负向规律' }].map(({ key, label }) => (
+            {[{ key: 'action', label: '正确的事' }, { key: 'mistake', label: '错误的事' }, { key: 'positive_law', label: '正向规律' }, { key: 'negative_law', label: '负向规律' }].map(({ key, label }) => (
               <div key={key} className="g-form-group"><div className="g-form-label">{label}</div><input type="number" className="g-form-input" min={1} max={20} value={configDraft[key]} onChange={e => setConfigDraft(d => ({ ...d, [key]: parseInt(e.target.value) || 1 }))} /></div>
             ))}
             <div className="g-modal-actions"><button className="btn btn-outline" onClick={() => setShowConfig(false)}>取消</button><button className="btn btn-primary" onClick={handleSaveConfig}>确认</button></div>
@@ -113,6 +118,7 @@ export default function HomePage({ onSwitchTab }) {
   const [todos, setTodos] = useState([])
   const [categories, setCategories] = useState([])
   const [actions, setActions] = useState([])
+  const [laws, setLaws] = useState([])
   const [modal, setModal] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showMigrateRec, setShowMigrateRec] = useState(false)
@@ -125,15 +131,19 @@ export default function HomePage({ onSwitchTab }) {
 
   const loadData = async () => {
     setLoading(true)
-    const [stg, sug, t, cats, acts] = await Promise.all([
-      api.getEvolutionProgress(), api.getSmartSuggestion(), api.getTodos(), api.getCategories(), api.getActions({ status: 0 })
+    const [stg, sug, t, cats, acts, lws] = await Promise.all([
+      api.getEvolutionProgress(), api.getSmartSuggestion(), api.getTodos(), api.getCategories(), api.getActions({ status: 0 }), api.getLaws({ status: 0 })
     ])
-    setStages(stg); setSuggestion(sug); setTodos(t); setCategories(cats); setActions(acts); setLoading(false)
+    setStages(stg); setSuggestion(sug); setTodos(t); setCategories(cats); setActions(acts); setLaws(lws); setLoading(false)
   }
 
   const handleDismiss = async (key) => { await api.dismissTodo(key); setTodos(prev => prev.filter(t => t.key !== key)) }
 
   const handleAddAction = async (data) => { await api.createAction(data); setModal(null); loadData(); toast.success('创建成功') }
+
+  const handleAddMistake = async (data) => { await api.createMistake(data); setModal(null); loadData(); toast.success('创建成功') }
+
+  const handleAddInspiration = async (data) => { await api.createInspiration(data); setModal(null); loadData(); toast.success('灵感已记录') }
 
   const handleAddLaw = async (data) => {
     await api.createLaw(data); setModal(null); loadData()
@@ -172,7 +182,7 @@ export default function HomePage({ onSwitchTab }) {
         {loading ? <Loading rows={4} /> : (<>
           <EvolutionJourney stages={stages} />
           <SmartSuggestion suggestion={suggestion} onAction={handleSuggestionAction} />
-          <QuickActions onAddAction={() => setModal('action')} onAddPositiveLaw={() => setModal('positive_law')} onAddNegativeLaw={() => setModal('negative_law')} onCheckin={() => setModal('checkin')} />
+          <QuickActions onAddAction={() => setModal('action')} onAddMistake={() => setModal('mistake')} onAddPositiveLaw={() => setModal('positive_law')} onAddNegativeLaw={() => setModal('negative_law')} onCheckin={() => setModal('checkin')} onAddInspiration={() => setModal('inspiration')} />
           <TodoSection todos={todos} onDismiss={handleDismiss} onMigrateClick={handleMigrateClick} />
           <RankSection categories={categories} />
         </>)}
@@ -180,6 +190,8 @@ export default function HomePage({ onSwitchTab }) {
 
       <CheckinModal visible={modal === 'checkin'} actions={actions} onClose={() => setModal(null)} onSubmit={handleCheckin} checkNegativeLaws={api.checkNegativeLaws} />
       <CreateActionModal visible={modal === 'action'} categories={categories} onClose={() => setModal(null)} onSubmit={handleAddAction} />
+      <CreateMistakeModal visible={modal === 'mistake'} categories={categories} laws={laws} onClose={() => setModal(null)} onSubmit={handleAddMistake} />
+      <CreateInspirationModal visible={modal === 'inspiration'} categories={categories} onClose={() => setModal(null)} onSubmit={handleAddInspiration} />
       <CreateLawModal visible={modal === 'positive_law'} lawType={1} categories={categories} actions={actions} onClose={() => setModal(null)} onSubmit={handleAddLaw} />
       <CreateLawModal visible={modal === 'negative_law'} lawType={2} categories={categories} actions={actions} onClose={() => setModal(null)} onSubmit={handleAddLaw} />
       <MigrateRecommendModal visible={showMigrateRec} recommendations={migrateRecs} onClose={() => setShowMigrateRec(false)} onAccept={handleAcceptMigration} onDismiss={api.dismissMigration} />

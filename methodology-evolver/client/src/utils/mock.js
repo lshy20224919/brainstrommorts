@@ -127,6 +127,67 @@ const mockDB = {
       created_at: '2024-04-14T20:00:00Z'
     }
   ],
+  mistakes: [
+    {
+      id: 1,
+      category_id: 1,
+      name: '追涨杀跌',
+      remark: '情绪化操作，看到涨就追，看到跌就割',
+      subjective_weight: 9,
+      status: 0,
+      pinned: 1,
+      related_law_ids: [1],
+      created_at: '2024-02-10T10:00:00Z'
+    },
+    {
+      id: 2,
+      category_id: 4,
+      name: '带情绪做决策',
+      remark: '愤怒或焦虑时做出的决策往往质量很低',
+      subjective_weight: 8,
+      status: 0,
+      pinned: 0,
+      related_law_ids: [],
+      created_at: '2024-03-05T09:00:00Z'
+    },
+    {
+      id: 3,
+      category_id: 2,
+      name: '熬夜超过凌晨1点',
+      remark: '严重影响第二天精力和判断力',
+      subjective_weight: 7,
+      status: 0,
+      pinned: 0,
+      related_law_ids: [2],
+      created_at: '2024-03-20T11:00:00Z'
+    }
+  ],
+  inspirations: [
+    {
+      id: 1,
+      desc: '低估值买入的逻辑可能也适用于二手房市场',
+      source: '书籍',
+      category_id: 1,
+      status: 0,
+      created_time: '2024-04-10T09:00:00Z'
+    },
+    {
+      id: 2,
+      desc: '间歇性断食可能比持续节食更有效',
+      source: '播客',
+      category_id: 2,
+      status: 0,
+      created_time: '2024-04-12T15:30:00Z'
+    },
+    {
+      id: 3,
+      desc: '费曼学习法的核心是输出倒逼输入，可以用在投资复盘上',
+      source: '视频',
+      category_id: 3,
+      status: 1,
+      created_time: '2024-04-08T20:00:00Z'
+    }
+  ],
   stats: {
     dashboard: {
       today_checkins: 2,
@@ -136,6 +197,7 @@ const mockDB = {
       total_actions: 3,
       active_actions: 3,
       total_laws: 2,
+      total_mistakes: 3,
       success_rate: 85
     }
   }
@@ -325,14 +387,61 @@ export const mockApi = {
       return { code: 200 }
     }
   },
+  mistakes: {
+    list: async (params = {}) => {
+      await delay()
+      let result = [...mockDB.mistakes]
+      if (params.category_id) result = result.filter(m => m.category_id === params.category_id)
+      if (params.status !== undefined) result = result.filter(m => m.status === params.status)
+      // 置顶排前面
+      result.sort((a, b) => (b.pinned || 0) - (a.pinned || 0))
+      return { code: 200, data: result, total: result.length }
+    },
+    detail: async (id) => {
+      await delay()
+      const mistake = mockDB.mistakes.find(m => m.id === id)
+      return mistake ? { code: 200, data: mistake } : { code: 404, message: 'Not found' }
+    },
+    create: async (data) => {
+      await delay()
+      const newMistake = { id: Date.now(), created_at: new Date().toISOString(), status: 0, pinned: 0, ...data }
+      mockDB.mistakes.push(newMistake)
+      return { code: 200, data: newMistake }
+    },
+    update: async (id, data) => {
+      await delay()
+      const idx = mockDB.mistakes.findIndex(m => m.id === id)
+      if (idx >= 0) {
+        mockDB.mistakes[idx] = { ...mockDB.mistakes[idx], ...data }
+        return { code: 200, data: mockDB.mistakes[idx] }
+      }
+      return { code: 404 }
+    },
+    delete: async (id) => {
+      await delay()
+      mockDB.mistakes = mockDB.mistakes.filter(m => m.id !== id)
+      return { code: 200 }
+    }
+  },
   stats: {
     dashboard: async () => {
       await delay()
-      return { code: 200, data: mockDB.stats.dashboard }
+      return { code: 200, data: { ...mockDB.stats.dashboard, mistake_count: mockDB.mistakes.filter(m => m.status === 0).length } }
     },
     ranking: async (params) => {
       await delay()
+      if (params.type === 'mistake') {
+        return { code: 200, data: mockDB.mistakes.filter(m => m.status === 0) }
+      }
       return { code: 200, data: [] }
+    },
+    todos: async () => {
+      await delay()
+      return { code: 200, data: [] }
+    },
+    dismissTodo: async (data) => {
+      await delay()
+      return { code: 200 }
     }
   },
   migrate: {
@@ -413,6 +522,45 @@ export const mockApi = {
       const idx = mockDB.sops.findIndex(s => s.id === id)
       if (idx >= 0) mockDB.sops[idx].used_count++
       return { code: 200 }
+    }
+  },
+  inspirations: {
+    list: async (params = {}) => {
+      await delay()
+      let result = [...mockDB.inspirations]
+      if (params.status !== undefined) result = result.filter(i => i.status === params.status)
+      if (params.category_id) result = result.filter(i => i.category_id === params.category_id)
+      result.sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
+      return { code: 200, data: result, total: result.length }
+    },
+    create: async (data) => {
+      await delay()
+      const newItem = { id: Date.now(), status: 0, created_time: new Date().toISOString(), ...data }
+      mockDB.inspirations.push(newItem)
+      return { code: 200, data: newItem }
+    },
+    update: async (id, data) => {
+      await delay()
+      const idx = mockDB.inspirations.findIndex(i => i.id === id)
+      if (idx >= 0) {
+        mockDB.inspirations[idx] = { ...mockDB.inspirations[idx], ...data }
+        return { code: 200, data: mockDB.inspirations[idx] }
+      }
+      return { code: 404 }
+    },
+    delete: async (id) => {
+      await delay()
+      mockDB.inspirations = mockDB.inspirations.filter(i => i.id !== id)
+      return { code: 200 }
+    },
+    convert: async (id, data) => {
+      await delay()
+      const idx = mockDB.inspirations.findIndex(i => i.id === id)
+      if (idx >= 0) {
+        mockDB.inspirations[idx].status = 1
+        return { code: 200, data: { target_type: data.target_type, target_id: Date.now() } }
+      }
+      return { code: 404 }
     }
   },
   storage: {

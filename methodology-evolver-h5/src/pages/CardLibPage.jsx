@@ -5,6 +5,8 @@ import ActionSheet from '../components/ActionSheet'
 import CheckinModal from '../components/CheckinModal'
 import CreateActionModal from '../components/CreateActionModal'
 import CreateLawModal from '../components/CreateLawModal'
+import CreateMistakeModal from '../components/CreateMistakeModal'
+import CreateInspirationModal from '../components/CreateInspirationModal'
 import MigrateModal from '../components/MigrateModal'
 import ActionDetailPanel from '../components/ActionDetailPanel'
 import Loading from '../components/Loading'
@@ -108,11 +110,39 @@ function LawCard({ law, category, relatedAction, onLongPress }) {
     </div>
   )
 }
+
+function MistakeCard({ mistake, category, relatedLaws, onLongPress }) {
+  const touchTimer = useRef(null)
+  const handleTouchStart = () => { touchTimer.current = setTimeout(() => onLongPress(mistake), 500) }
+  const handleTouchEnd = () => clearTimeout(touchTimer.current)
+  const handleContextMenu = (e) => { e.preventDefault(); onLongPress(mistake) }
+
+  return (
+    <div className={`mistake-card ${mistake.status !== 0 ? 'archived' : ''}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onContextMenu={handleContextMenu}>
+      <div className="mistake-card-name">{mistake.name}</div>
+      <div className="mistake-card-meta">
+        <span className="mistake-card-category">{category?.icon} {category?.name}</span>
+        {mistake.remark && <span className="mistake-card-remark">{mistake.remark}</span>}
+      </div>
+      <div className="mistake-card-footer">
+        <span className="mistake-card-weight">权重 {mistake.subjective_weight}</span>
+        <span className="mistake-card-badge">红线</span>
+      </div>
+      {relatedLaws && relatedLaws.length > 0 && (
+        <div className="mistake-card-meta" style={{ marginTop: 4 }}>
+          <span className="mistake-card-category">关联：{relatedLaws.map(l => l.law_desc).join('、')}</span>
+        </div>
+      )}
+    </div>
+  )
+}
 export default function CardLibPage() {
   const [tab, setTab] = useState('action')
   const [categories, setCategories] = useState([])
   const [actions, setActions] = useState([])
   const [laws, setLaws] = useState([])
+  const [mistakes, setMistakes] = useState([])
+  const [inspirations, setInspirations] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterCategory, setFilterCategory] = useState('')
   const [filterSort, setFilterSort] = useState('weight')
@@ -120,6 +150,9 @@ export default function CardLibPage() {
   const [lawFilterCategory, setLawFilterCategory] = useState('')
   const [lawFilterType, setLawFilterType] = useState('')
   const [lawFilterSort, setLawFilterSort] = useState('weight')
+  const [mistakeFilterCategory, setMistakeFilterCategory] = useState('')
+  const [mistakeFilterSort, setMistakeFilterSort] = useState('weight')
+  const [mistakeFilterStatus, setMistakeFilterStatus] = useState(0)
 
   const [checkinTarget, setCheckinTarget] = useState(null)
   const [actionSheet, setActionSheet] = useState(null)
@@ -127,6 +160,9 @@ export default function CardLibPage() {
   const [editActionTarget, setEditActionTarget] = useState(null)
   const [showCreateLaw, setShowCreateLaw] = useState(false)
   const [editLawTarget, setEditLawTarget] = useState(null)
+  const [showCreateMistake, setShowCreateMistake] = useState(false)
+  const [editMistakeTarget, setEditMistakeTarget] = useState(null)
+  const [showCreateInspiration, setShowCreateInspiration] = useState(false)
   const [migrateTarget, setMigrateTarget] = useState(null)
   const [detailAction, setDetailAction] = useState(null)
 
@@ -135,6 +171,8 @@ export default function CardLibPage() {
   useEffect(() => { api.getCategories().then(setCategories) }, [])
   useEffect(() => { loadActions() }, [filterCategory, filterStatus])
   useEffect(() => { loadLaws() }, [lawFilterCategory, lawFilterType])
+  useEffect(() => { loadMistakes() }, [mistakeFilterCategory, mistakeFilterStatus])
+  useEffect(() => { loadInspirations() }, [])
 
   const loadActions = async () => {
     setLoading(true)
@@ -149,10 +187,21 @@ export default function CardLibPage() {
     if (lawFilterType) params.law_type = Number(lawFilterType)
     setLaws(await api.getLaws(params)); setLoading(false)
   }
+  const loadMistakes = async () => {
+    setLoading(true)
+    const params = { status: mistakeFilterStatus }
+    if (mistakeFilterCategory) params.category_id = Number(mistakeFilterCategory)
+    setMistakes(await api.getMistakes(params)); setLoading(false)
+  }
+  const loadInspirations = async () => {
+    setInspirations(await api.getInspirations({ status: 0 }))
+  }
 
   const sortedActions = [...actions].sort((a, b) => { if (filterSort === 'weight') return b.subjective_weight - a.subjective_weight; if (filterSort === 'exec') return b.exec_count - a.exec_count; return (b.success_rate ?? -1) - (a.success_rate ?? -1) })
   const displayActions = [...sortedActions.filter(a => a.pinned === 1), ...sortedActions.filter(a => a.pinned !== 1)]
   const sortedLaws = [...laws].sort((a, b) => lawFilterSort === 'weight' ? b.subjective_weight - a.subjective_weight : b.trigger_count - a.trigger_count)
+  const sortedMistakes = [...mistakes].sort((a, b) => mistakeFilterSort === 'weight' ? b.subjective_weight - a.subjective_weight : 0)
+  const displayMistakes = [...sortedMistakes.filter(m => m.pinned === 1), ...sortedMistakes.filter(m => m.pinned !== 1)]
 
   const getCategory = (id) => categories.find(c => c.id === id)
   const getAction = (id) => actions.find(a => a.id === id)
@@ -162,6 +211,8 @@ export default function CardLibPage() {
   const handleEditAction = async (data) => { await api.updateAction(editActionTarget.id, data); setEditActionTarget(null); loadActions(); toast.success('保存成功') }
   const handleCreateLaw = async (data) => { await api.createLaw(data); setShowCreateLaw(false); loadLaws(); toast.success('创建成功') }
   const handleEditLaw = async (data) => { await api.updateLaw(editLawTarget.id, data); setEditLawTarget(null); loadLaws(); toast.success('保存成功') }
+  const handleCreateMistake = async (data) => { await api.createMistake(data); setShowCreateMistake(false); loadMistakes(); toast.success('创建成功') }
+  const handleEditMistake = async (data) => { await api.updateMistake(editMistakeTarget.id, data); setEditMistakeTarget(null); loadMistakes(); toast.success('保存成功') }
   const handleMigrate = async (targetCategoryId) => {
     const t = migrateTarget
     await api.migrateCard(t.id, t.law_desc ? 'law' : 'action', targetCategoryId)
@@ -198,12 +249,39 @@ export default function CardLibPage() {
     })
   }
 
+  const openMistakeSheet = (mistake) => {
+    setActionSheet({
+      actions: [
+        { icon: '✏️', label: '编辑', onClick: () => setEditMistakeTarget(mistake) },
+        { icon: '📌', label: mistake.pinned ? '取消置顶' : '置顶', onClick: async () => { await api.updateMistake(mistake.id, { pinned: mistake.pinned ? 0 : 1 }); loadMistakes() } },
+        { icon: '🔀', label: '迁移', onClick: () => setMigrateTarget(mistake) },
+        { icon: '🚫', label: '淘汰', danger: true, onClick: async () => { await api.updateMistake(mistake.id, { status: 2 }); loadMistakes(); toast.info('已淘汰') } },
+        { icon: '🗑️', label: '删除', danger: true, onClick: async () => { try { await api.deleteMistake(mistake.id); loadMistakes(); toast.success('已删除') } catch (e) { toast.error(e.message) } } }
+      ]
+    })
+  }
+
+  const openInspirationSheet = (insp) => {
+    setActionSheet({
+      actions: [
+        { icon: '✅', label: '转为正确的事', onClick: async () => { await api.convertInspiration(insp.id, 'action'); loadInspirations(); setActionSheet(null); toast.success('已转化') } },
+        { icon: '⛔', label: '转为错误的事', onClick: async () => { await api.convertInspiration(insp.id, 'mistake'); loadInspirations(); setActionSheet(null); toast.success('已转化') } },
+        { icon: '💡', label: '转为规律', onClick: async () => { await api.convertInspiration(insp.id, 'law'); loadInspirations(); setActionSheet(null); toast.success('已转化') } },
+        { icon: '🗑️', label: '删除', danger: true, onClick: async () => { await api.deleteInspiration(insp.id); loadInspirations(); toast.success('已删除') } }
+      ]
+    })
+  }
+
+  const handleCreateInspiration = async (data) => { await api.createInspiration(data); setShowCreateInspiration(false); loadInspirations(); toast.success('灵感已记录') }
+
   return (
     <div className="page">
       <div className="page-header"><h2>卡片库</h2></div>
       <div className="card-lib-tabs">
         <button className={`card-lib-tab ${tab === 'action' ? 'active' : ''}`} onClick={() => setTab('action')}>正确的事 ({actions.filter(a => a.status === 0).length})</button>
+        <button className={`card-lib-tab ${tab === 'mistake' ? 'active' : ''}`} onClick={() => setTab('mistake')}>错误的事 ({mistakes.filter(m => m.status === 0).length})</button>
         <button className={`card-lib-tab ${tab === 'law' ? 'active' : ''}`} onClick={() => setTab('law')}>规律 ({laws.length})</button>
+        <button className={`card-lib-tab ${tab === 'inspiration' ? 'active' : ''}`} onClick={() => setTab('inspiration')}>灵感 ({inspirations.filter(i => i.status === 0).length})</button>
       </div>
 
       {tab === 'action' && (<>
@@ -220,6 +298,20 @@ export default function CardLibPage() {
         <button className="fab" onClick={() => setShowCreateAction(true)}>+</button>
       </>)}
 
+      {tab === 'mistake' && (<>
+        <div className="filter-bar">
+          <select className="filter-select" value={mistakeFilterCategory} onChange={e => setMistakeFilterCategory(e.target.value)}><option value="">全部分类</option>{categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}</select>
+          <select className="filter-select" value={mistakeFilterSort} onChange={e => setMistakeFilterSort(e.target.value)}><option value="weight">主观权重</option></select>
+          <select className="filter-select" value={mistakeFilterStatus} onChange={e => setMistakeFilterStatus(Number(e.target.value))}><option value={0}>正常</option><option value={2}>已淘汰</option></select>
+        </div>
+        <div className="card-list">
+          {loading ? <Loading rows={3} /> : displayMistakes.length === 0 ? (
+            <div className="empty-state"><span className="empty-icon">⛔</span><span className="empty-text">暂无错误的事</span></div>
+          ) : displayMistakes.map(mistake => <MistakeCard key={mistake.id} mistake={mistake} category={getCategory(mistake.category_id)} relatedLaws={(mistake.related_law_ids || []).map(id => laws.find(l => l.id === id)).filter(Boolean)} onLongPress={openMistakeSheet} />)}
+        </div>
+        <button className="fab" onClick={() => setShowCreateMistake(true)}>+</button>
+      </>)}
+
       {tab === 'law' && (<>
         <div className="filter-bar">
           <select className="filter-select" value={lawFilterCategory} onChange={e => setLawFilterCategory(e.target.value)}><option value="">全部分类</option>{categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}</select>
@@ -234,12 +326,33 @@ export default function CardLibPage() {
         <button className="fab" onClick={() => setShowCreateLaw(true)}>+</button>
       </>)}
 
+      {tab === 'inspiration' && (<>
+        <div className="card-list">
+          {inspirations.length === 0 ? (
+            <div className="empty-state"><span className="empty-icon">💡</span><span className="empty-text">暂无灵感</span></div>
+          ) : inspirations.map(insp => (
+            <div key={insp.id} className={`inspiration-card ${insp.status === 1 ? 'converted' : ''}`} onContextMenu={e => { e.preventDefault(); openInspirationSheet(insp) }} onTouchStart={() => { insp._timer = setTimeout(() => openInspirationSheet(insp), 500) }} onTouchEnd={() => clearTimeout(insp._timer)}>
+              <div className="inspiration-card-desc">{insp.desc}</div>
+              <div className="inspiration-card-meta">
+                {insp.source && <span className="inspiration-card-source">{insp.source}</span>}
+                {insp.category_id && <span>{getCategory(insp.category_id)?.icon} {getCategory(insp.category_id)?.name}</span>}
+                <span className="inspiration-card-time">{new Date(insp.created_time).toLocaleDateString()}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <button className="fab" onClick={() => setShowCreateInspiration(true)}>+</button>
+      </>)}
+
       <ActionSheet visible={!!actionSheet} actions={actionSheet?.actions || []} onClose={() => setActionSheet(null)} />
       <CheckinModal visible={!!checkinTarget} action={checkinTarget} onClose={() => setCheckinTarget(null)} onSubmit={data => handleCheckin(checkinTarget, data)} checkNegativeLaws={api.checkNegativeLaws} />
       <CreateActionModal visible={showCreateAction} categories={categories} onClose={() => setShowCreateAction(false)} onSubmit={handleCreateAction} />
       <CreateActionModal visible={!!editActionTarget} categories={categories} initial={editActionTarget} onClose={() => setEditActionTarget(null)} onSubmit={handleEditAction} />
       <CreateLawModal visible={showCreateLaw} categories={categories} actions={actions.filter(a => a.status === 0)} onClose={() => setShowCreateLaw(false)} onSubmit={handleCreateLaw} />
       <CreateLawModal visible={!!editLawTarget} categories={categories} actions={actions.filter(a => a.status === 0)} initial={editLawTarget} onClose={() => setEditLawTarget(null)} onSubmit={handleEditLaw} />
+      <CreateMistakeModal visible={showCreateMistake} categories={categories} laws={laws} onClose={() => setShowCreateMistake(false)} onSubmit={handleCreateMistake} />
+      <CreateMistakeModal visible={!!editMistakeTarget} categories={categories} laws={laws} initial={editMistakeTarget} onClose={() => setEditMistakeTarget(null)} onSubmit={handleEditMistake} />
+      <CreateInspirationModal visible={showCreateInspiration} categories={categories} onClose={() => setShowCreateInspiration(false)} onSubmit={handleCreateInspiration} />
       <MigrateModal visible={!!migrateTarget} categories={categories} currentCategoryId={migrateTarget?.category_id} onClose={() => setMigrateTarget(null)} onConfirm={handleMigrate} />
       <ActionDetailPanel visible={!!detailAction} action={detailAction} category={detailAction ? getCategory(detailAction.category_id) : null} onClose={() => setDetailAction(null)} />
     </div>
