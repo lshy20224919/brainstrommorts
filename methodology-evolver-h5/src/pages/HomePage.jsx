@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { CirclePlus, ShieldX, CircleCheck, TrendingUp, TrendingDown, Sparkles } from 'lucide-react'
 import { api } from '../mock'
 import { useToast } from '../components/Toast'
 import CheckinModal from '../components/CheckinModal'
@@ -68,12 +69,12 @@ function DraftReminder({ onResume, onClear }) {
 function QuickActions({ onAddAction, onAddPositiveLaw, onAddNegativeLaw, onAddMistake, onCheckin, onAddInspiration }) {
   return (
     <div className="quick-actions">
-      <button className="quick-btn" onClick={onAddAction}><span className="quick-btn-icon">➕</span><span className="quick-btn-label">正确的事</span></button>
-      <button className="quick-btn" onClick={onAddMistake}><span className="quick-btn-icon">⛔</span><span className="quick-btn-label">错误的事</span></button>
-      <button className="quick-btn" onClick={onCheckin}><span className="quick-btn-icon">✅</span><span className="quick-btn-label">打卡</span></button>
-      <button className="quick-btn" onClick={onAddPositiveLaw}><span className="quick-btn-icon">➕</span><span className="quick-btn-label">正向规律</span></button>
-      <button className="quick-btn" onClick={onAddNegativeLaw}><span className="quick-btn-icon">➕</span><span className="quick-btn-label">负向规律</span></button>
-      <button className="quick-btn" onClick={onAddInspiration}><span className="quick-btn-icon">💡</span><span className="quick-btn-label">灵感捕捉</span></button>
+      <button className="quick-btn" onClick={onAddAction}><span className="quick-btn-icon"><CirclePlus size={14} strokeWidth={1.5} /></span><span className="quick-btn-label">正确的事</span></button>
+      <button className="quick-btn" onClick={onAddMistake}><span className="quick-btn-icon"><ShieldX size={14} strokeWidth={1.5} /></span><span className="quick-btn-label">错误的事</span></button>
+      <button className="quick-btn" onClick={onCheckin}><span className="quick-btn-icon"><CircleCheck size={14} strokeWidth={1.5} /></span><span className="quick-btn-label">打卡</span></button>
+      <button className="quick-btn" onClick={onAddPositiveLaw}><span className="quick-btn-icon"><TrendingUp size={14} strokeWidth={1.5} /></span><span className="quick-btn-label">正向规律</span></button>
+      <button className="quick-btn" onClick={onAddNegativeLaw}><span className="quick-btn-icon"><TrendingDown size={14} strokeWidth={1.5} /></span><span className="quick-btn-label">负向规律</span></button>
+      <button className="quick-btn" onClick={onAddInspiration}><span className="quick-btn-icon"><Sparkles size={14} strokeWidth={1.5} /></span><span className="quick-btn-label">灵感捕捉</span></button>
     </div>
   )
 }
