@@ -232,7 +232,12 @@ export default function HomePage({ onSwitchTab }) {
 
   return (
     <div className="page">
-      <div className="page-header"><h1 className="page-title">方法论进化器</h1></div>
+      <div className="page-header">
+        <div className="page-header-row">
+          <h1 className="page-title">方法论进化器</h1>
+          <span className="page-header-sub">iterating your playbook</span>
+        </div>
+      </div>
       <div className="page-body">
         {loading ? <Loading rows={4} /> : (<>
           <DataDashboard stats={stats} />
