@@ -1,3 +1,5 @@
+import { Check } from 'lucide-react'
+
 export default function EvolutionJourney({ stages }) {
   if (!stages || stages.length === 0) return null
 
@@ -6,11 +8,11 @@ export default function EvolutionJourney({ stages }) {
       <div className="evo-journey-title">进化旅程</div>
       <div className="evo-journey-track">
         {stages.map((stage, i) => (
-          <div key={stage.key} className="evo-journey-step">
+          <div key={stage.key} className={`evo-journey-step ${stage.done ? 'done' : ''}`}>
             <div className="evo-journey-dot-row">
               {i > 0 && <div className={`evo-journey-line ${stages[i - 1].done ? 'done' : ''}`} />}
               <div className={`evo-journey-dot ${stage.done ? 'done' : ''}`}>
-                {stage.done && <span className="evo-journey-check">✓</span>}
+                {stage.done && <Check size={10} strokeWidth={3} color="#fff" />}
               </div>
             </div>
             <div className="evo-journey-label">{stage.label}</div>

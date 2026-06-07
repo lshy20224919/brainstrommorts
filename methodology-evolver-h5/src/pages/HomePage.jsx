@@ -109,7 +109,7 @@ const RANK_TABS = [
 function RankSection({ categories }) {
   const [rankIndex, setRankIndex] = useState(0)
   const [rankings, setRankings] = useState({ action: [], mistake: [], positive_law: [], negative_law: [] })
-  const [rankConfig, setRankConfig] = useState({ action: 5, mistake: 3, positive_law: 3, negative_law: 3 })
+  const [rankConfig, setRankConfig] = useState({ action: 5, mistake: 5, positive_law: 5, negative_law: 5 })
   const [showConfig, setShowConfig] = useState(false)
   const [configDraft, setConfigDraft] = useState(null)
   const touchStartX = useRef(null)
