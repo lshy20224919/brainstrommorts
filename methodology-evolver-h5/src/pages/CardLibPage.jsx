@@ -14,7 +14,7 @@ import LawDetailPanel from '../components/LawDetailPanel'
 import InspirationDetailPanel from '../components/InspirationDetailPanel'
 import Loading from '../components/Loading'
 
-function UnifiedCard({ title, badge, badgeClass, meta, data, borderColor, onClick, onLongPress }) {
+function UnifiedCard({ title, badge, badgeClass, meta, data, borderColor, onClick, onLongPress, rate }) {
   const touchTimer = useRef(null)
   const handleTouchStart = () => { touchTimer.current = setTimeout(() => onLongPress(), 500) }
   const handleTouchEnd = () => clearTimeout(touchTimer.current)
@@ -23,18 +23,26 @@ function UnifiedCard({ title, badge, badgeClass, meta, data, borderColor, onClic
   return (
     <div
       className="unified-card"
-      style={{ borderLeftColor: borderColor }}
       onClick={onClick}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
       onContextMenu={handleContextMenu}
     >
-      <div className="unified-card-row1">
-        <span className="unified-card-title">{title}</span>
-        {badge && <span className={`unified-card-badge ${badgeClass || ''}`}>{badge}</span>}
+      <div className="unified-card-left">
+        <div className="unified-card-title">
+          {title}
+          {badge && <span className={`unified-card-badge ${badgeClass || ''}`}>{badge}</span>}
+        </div>
+        <div className="unified-card-meta">{meta}</div>
       </div>
-      <div className="unified-card-row2">{meta}</div>
-      <div className="unified-card-row3">{data}</div>
+      <div className="unified-card-right">
+        <div className="unified-card-data">{data}</div>
+        {rate != null && (
+          <div className="unified-card-bar">
+            <div className="unified-card-bar-fill" style={{ width: `${rate}%`, background: borderColor || 'var(--accent)' }} />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -216,7 +224,7 @@ export default function CardLibPage() {
       if (list.length === 0) return <div className="empty-state"><span className="empty-icon">📋</span><span className="empty-text">暂无正确的事</span></div>
       return list.map(action => {
         const cat = getCategory(action.category_id)
-        return <UnifiedCard key={action.id} title={action.name} badge={action.pinned === 1 ? '置顶' : null} badgeClass="badge-pinned" meta={<>{cat?.icon} {cat?.name}</>} data={<>执行 {action.exec_count} 次 · 成功率 {action.success_rate != null ? `${action.success_rate}%` : '暂无'}</>} borderColor={cat?.color || '#9CA3AF'} onClick={() => setDetailAction(action)} onLongPress={() => openActionSheet(action)} />
+        return <UnifiedCard key={action.id} title={action.name} badge={action.pinned === 1 ? '置顶' : null} badgeClass="badge-pinned" meta={<>{cat?.name} · 执行 {action.exec_count} 次</>} data={action.success_rate != null ? `${action.success_rate}%` : '—'} rate={action.success_rate} borderColor={cat?.color || 'var(--accent)'} onClick={() => setDetailAction(action)} onLongPress={() => openActionSheet(action)} />
       })
     }
 
@@ -226,7 +234,7 @@ export default function CardLibPage() {
       return list.map(mistake => {
         const cat = getCategory(mistake.category_id)
         const relatedCount = (mistake.related_law_ids || []).length
-        return <UnifiedCard key={mistake.id} title={mistake.name} badge="红线" badgeClass="badge-redline" meta={<>{cat?.icon} {cat?.name}</>} data={<>权重 {mistake.subjective_weight} · 关联 {relatedCount} 条规律</>} borderColor="#FF6B35" onClick={() => setDetailMistake(mistake)} onLongPress={() => openMistakeSheet(mistake)} />
+        return <UnifiedCard key={mistake.id} title={mistake.name} badge="红线" badgeClass="badge-redline" meta={<>{cat?.name} · 关联 {relatedCount} 条规律</>} data={`权重 ${mistake.subjective_weight}`} borderColor="#D4836A" onClick={() => setDetailMistake(mistake)} onLongPress={() => openMistakeSheet(mistake)} />
       })
     }
 
@@ -237,7 +245,7 @@ export default function CardLibPage() {
       return list.map(law => {
         const cat = getCategory(law.category_id)
         const relatedAction = law.related_action_id ? getAction(law.related_action_id) : null
-        return <UnifiedCard key={law.id} title={law.law_desc} meta={<>{cat?.icon} {cat?.name}{relatedAction ? ` · 关联：${relatedAction.name}` : ''}</>} data={<>触发 {law.trigger_count} 次 · 权重 {law.subjective_weight}</>} borderColor={type === 1 ? '#36D399' : '#F87272'} onClick={() => setDetailLaw(law)} onLongPress={() => openLawSheet(law)} />
+        return <UnifiedCard key={law.id} title={law.law_desc} meta={<>{cat?.name}{relatedAction ? ` · ${relatedAction.name}` : ''}</>} data={`触发 ${law.trigger_count} 次`} borderColor={type === 1 ? 'var(--accent)' : '#D4836A'} onClick={() => setDetailLaw(law)} onLongPress={() => openLawSheet(law)} />
       })
     }
 
@@ -247,49 +255,57 @@ export default function CardLibPage() {
       if (list.length === 0) return <div className="empty-state"><span className="empty-icon">💡</span><span className="empty-text">暂无{dir === 'positive' ? '正向' : '负向'}灵感</span></div>
       return list.map(insp => {
         const cat = getCategory(insp.category_id)
-        return <UnifiedCard key={insp.id} title={insp.desc} meta={<>{cat ? `${cat.icon} ${cat.name}` : ''}{insp.source ? ` · 来源：${insp.source}` : ''}</>} data={new Date(insp.created_time).toLocaleDateString()} borderColor={dir === 'positive' ? '#FBBF24' : '#A78BFA'} onClick={() => setDetailInspiration(insp)} onLongPress={() => openInspirationSheet(insp)} />
+        return <UnifiedCard key={insp.id} title={insp.desc} meta={<>{cat?.name || ''}{insp.source ? ` · ${insp.source}` : ''}</>} data={new Date(insp.created_time).toLocaleDateString()} borderColor={dir === 'positive' ? 'var(--accent)' : '#A78BFA'} onClick={() => setDetailInspiration(insp)} onLongPress={() => openInspirationSheet(insp)} />
       })
     }
   }
 
   return (
     <div className="page">
-      <div className="page-header"><h2>卡片库</h2></div>
-
-      {/* 一级 Tab */}
-      <div className="card-lib-tabs">
-        <button className={`card-lib-tab ${primaryTab === 'behavior' ? 'active' : ''}`} onClick={() => handlePrimaryTabChange('behavior')}>行为 ({actionCount + mistakeCount})</button>
-        <button className={`card-lib-tab ${primaryTab === 'law' ? 'active' : ''}`} onClick={() => handlePrimaryTabChange('law')}>规律 ({positiveLawCount + negativeLawCount})</button>
-        <button className={`card-lib-tab ${primaryTab === 'inspiration' ? 'active' : ''}`} onClick={() => handlePrimaryTabChange('inspiration')}>灵感 ({positiveInspCount + negativeInspCount})</button>
+      <div className="page-header">
+        <h2>卡片库</h2>
+        <div className="card-lib-tabs">
+          <button className={`card-lib-tab ${primaryTab === 'behavior' ? 'active' : ''}`} onClick={() => handlePrimaryTabChange('behavior')}>
+            <span className="card-lib-tab-count">{actionCount + mistakeCount}</span>
+            <span className="card-lib-tab-label">行为</span>
+          </button>
+          <button className={`card-lib-tab ${primaryTab === 'law' ? 'active' : ''}`} onClick={() => handlePrimaryTabChange('law')}>
+            <span className="card-lib-tab-count">{positiveLawCount + negativeLawCount}</span>
+            <span className="card-lib-tab-label">规律</span>
+          </button>
+          <button className={`card-lib-tab ${primaryTab === 'inspiration' ? 'active' : ''}`} onClick={() => handlePrimaryTabChange('inspiration')}>
+            <span className="card-lib-tab-count">{positiveInspCount + negativeInspCount}</span>
+            <span className="card-lib-tab-label">灵感</span>
+          </button>
+        </div>
       </div>
 
-      {/* 二级 pill 切换 */}
-      <div className="sub-tab-bar">
-        {primaryTab === 'behavior' && <>
-          <button className={`sub-tab-pill positive ${subTab === 'action' ? 'active' : ''}`} onClick={() => setSubTab('action')}>正确的事 ({actionCount})</button>
-          <button className={`sub-tab-pill negative ${subTab === 'mistake' ? 'active' : ''}`} onClick={() => setSubTab('mistake')}>错误的事 ({mistakeCount})</button>
-        </>}
-        {primaryTab === 'law' && <>
-          <button className={`sub-tab-pill positive ${subTab === 'positive' ? 'active' : ''}`} onClick={() => setSubTab('positive')}>正向 ({positiveLawCount})</button>
-          <button className={`sub-tab-pill negative ${subTab === 'negative' ? 'active' : ''}`} onClick={() => setSubTab('negative')}>负向 ({negativeLawCount})</button>
-        </>}
-        {primaryTab === 'inspiration' && <>
-          <button className={`sub-tab-pill positive ${subTab === 'positive' ? 'active' : ''}`} onClick={() => setSubTab('positive')}>正向 ({positiveInspCount})</button>
-          <button className={`sub-tab-pill negative ${subTab === 'negative' ? 'active' : ''}`} onClick={() => setSubTab('negative')}>负向 ({negativeInspCount})</button>
-        </>}
-      </div>
-
-      {/* 筛选栏 */}
-      <div className="filter-bar">
-        <select className="filter-select" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-          <option value="">全部分类</option>
-          {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-        </select>
-        {getSortOptions().length > 1 && (
-          <select className="filter-select" value={filterSort} onChange={e => setFilterSort(e.target.value)}>
-            {getSortOptions().map(([val, label]) => <option key={val} value={val}>{label}</option>)}
+      <div className="card-lib-control-bar">
+        <div className="card-lib-sub-tabs">
+          {primaryTab === 'behavior' && <>
+            <button className={`card-lib-sub ${subTab === 'action' ? 'active' : ''}`} onClick={() => setSubTab('action')}>正确的事</button>
+            <button className={`card-lib-sub ${subTab === 'mistake' ? 'active' : ''}`} onClick={() => setSubTab('mistake')}>错误的事</button>
+          </>}
+          {primaryTab === 'law' && <>
+            <button className={`card-lib-sub ${subTab === 'positive' ? 'active' : ''}`} onClick={() => setSubTab('positive')}>正向</button>
+            <button className={`card-lib-sub ${subTab === 'negative' ? 'active' : ''}`} onClick={() => setSubTab('negative')}>负向</button>
+          </>}
+          {primaryTab === 'inspiration' && <>
+            <button className={`card-lib-sub ${subTab === 'positive' ? 'active' : ''}`} onClick={() => setSubTab('positive')}>正向</button>
+            <button className={`card-lib-sub ${subTab === 'negative' ? 'active' : ''}`} onClick={() => setSubTab('negative')}>负向</button>
+          </>}
+        </div>
+        <div className="card-lib-filters">
+          <select className="filter-select" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
+            <option value="">全部</option>
+            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-        )}
+          {getSortOptions().length > 1 && (
+            <select className="filter-select" value={filterSort} onChange={e => setFilterSort(e.target.value)}>
+              {getSortOptions().map(([val, label]) => <option key={val} value={val}>{label}</option>)}
+            </select>
+          )}
+        </div>
       </div>
 
       {/* 卡片列表 */}

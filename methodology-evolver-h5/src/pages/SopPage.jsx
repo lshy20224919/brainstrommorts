@@ -364,18 +364,13 @@ function SopCard({ sop, category, onExec, onLongPress }) {
       onTouchEnd={handleTouchEnd}
       onContextMenu={handleContextMenu}
     >
-      <div className="sop-card-header">
-        <span className="sop-card-name">{sop.name}</span>
+      <div className="sop-card-left">
+        <div className="sop-card-name">{sop.name}</div>
+        <div className="sop-card-meta">{category?.name} · {formatLastExec(sop.last_exec_time)}</div>
       </div>
-      <div className="sop-card-meta">
-        <span className="sop-card-category">{category?.icon} {category?.name}</span>
-        <span className="sop-card-dot">·</span>
-        <span className="sop-card-steps">{sop.steps.length} 步骤</span>
-      </div>
-      {sop.remark ? <div className="sop-card-remark">{sop.remark}</div> : null}
-      <div className="sop-card-footer">
-        <span className="sop-card-last-exec">{formatLastExec(sop.last_exec_time)}</span>
-        <button className="sop-exec-btn" onClick={e => { e.stopPropagation(); onExec(sop) }}>套用 ▶</button>
+      <div className="sop-card-right">
+        <span className="sop-card-steps">{sop.steps.length}步</span>
+        <button className="sop-exec-btn" onClick={e => { e.stopPropagation(); onExec(sop) }}>▶</button>
       </div>
     </div>
   )
