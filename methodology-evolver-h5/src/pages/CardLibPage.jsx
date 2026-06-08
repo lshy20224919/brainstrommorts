@@ -263,7 +263,10 @@ export default function CardLibPage() {
   return (
     <div className="page">
       <div className="page-header">
-        <h2>卡片库</h2>
+        <div className="page-header-row">
+          <h2>卡片库</h2>
+          <span className="page-header-sub">card library</span>
+        </div>
         <div className="card-lib-tabs">
           <button className={`card-lib-tab ${primaryTab === 'behavior' ? 'active' : ''}`} onClick={() => handlePrimaryTabChange('behavior')}>
             <span className="card-lib-tab-count">{actionCount + mistakeCount}</span>

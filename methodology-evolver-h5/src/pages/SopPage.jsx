@@ -465,7 +465,10 @@ export default function SopPage() {
   return (
     <div className="page">
       <div className="page-header">
-        <h2>SOP 模板</h2>
+        <div className="page-header-row">
+          <h2>SOP 模板</h2>
+          <span className="page-header-sub">standard operating procedure</span>
+        </div>
       </div>
 
       <div className="filter-bar">

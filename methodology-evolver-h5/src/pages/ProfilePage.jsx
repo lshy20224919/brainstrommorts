@@ -240,7 +240,12 @@ export default function ProfilePage() {
 
   return (
     <div className="page profile-page">
-      <div className="page-header"><h2>个人中心</h2></div>
+      <div className="page-header">
+        <div className="page-header-row">
+          <h2>个人中心</h2>
+          <span className="page-header-sub">profile & settings</span>
+        </div>
+      </div>
       <div className="page-body">
         <UserCard settings={settings} />
         <DataOverview actions={actions} laws={laws} />
