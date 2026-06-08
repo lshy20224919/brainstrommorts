@@ -2080,7 +2080,7 @@ body {
 .review-stats-row {
   display: flex;
   align-items: center;
-  background: #162238;
+  background: var(--accent-deep);
   border-radius: 12px;
   padding: 14px 0;
 }
@@ -2093,7 +2093,7 @@ body {
 .review-stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--surface);
   line-height: 1.2;
 }
 
@@ -2110,7 +2110,7 @@ body {
 }
 
 .review-section {
-  background: #FFFFFF;
+  background: var(--surface);
   border-radius: 12px;
   padding: 12px 14px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -2119,13 +2119,13 @@ body {
 .review-section-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--ink);
   margin-bottom: 1px;
 }
 
 .review-section-sub {
   font-size: 10px;
-  color: #9CA3AF;
+  color: var(--muted);
   margin-bottom: 10px;
 }
 
@@ -2145,7 +2145,7 @@ body {
 .heatmap-day-label {
   width: 14px;
   font-size: 9px;
-  color: #9CA3AF;
+  color: var(--muted);
   text-align: center;
   flex-shrink: 0;
 }
@@ -2162,7 +2162,7 @@ body {
 .heatmap-cell:hover,
 .heatmap-cell.selected {
   transform: scale(1.25);
-  box-shadow: 0 0 0 1.5px #162238;
+  box-shadow: 0 0 0 1.5px var(--accent-deep);
   opacity: 1 !important;
 }
 
@@ -2178,7 +2178,7 @@ body {
   align-items: center;
   gap: 3px;
   font-size: 10px;
-  color: #9CA3AF;
+  color: var(--muted);
 }
 
 .heatmap-legend-dot {
@@ -2193,18 +2193,18 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
-  background: #F5F7FA;
+  background: var(--paper);
   border-radius: 8px;
   padding: 7px 10px;
   margin-top: 8px;
   font-size: 12px;
-  color: #6B7280;
+  color: var(--muted);
   flex-wrap: wrap;
 }
 
 .heatmap-tooltip-date {
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--ink);
 }
 
 
@@ -2219,17 +2219,17 @@ body {
 .radar-tab {
   padding: 4px 12px;
   border-radius: 20px;
-  border: 1px solid #E5E7EB;
+  border: 1px solid var(--rule);
   background: transparent;
   font-size: 12px;
-  color: #6B7280;
+  color: var(--muted);
   cursor: pointer;
 }
 
 .radar-tab.active {
-  background: #162238;
-  border-color: #162238;
-  color: #FFFFFF;
+  background: var(--accent-deep);
+  border-color: var(--accent-deep);
+  color: var(--surface);
 }
 
 .trend-chart-wrap {
@@ -2247,7 +2247,7 @@ body {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #6B7280;
+  color: var(--muted);
 }
 .trend-legend-line {
   display: inline-block;
@@ -2256,7 +2256,7 @@ body {
   border-radius: 2px;
 }
 .trend-legend-line.dashed {
-  background: repeating-linear-gradient(90deg, #36D399 0, #36D399 4px, transparent 4px, transparent 6px) !important;
+  background: repeating-linear-gradient(90deg, var(--success) 0, var(--success) 4px, transparent 4px, transparent 6px) !important;
 }
 
 .radar-wrap {
@@ -2270,7 +2270,7 @@ body {
   display: flex;
   gap: 16px;
   font-size: 11px;
-  color: #6B7280;
+  color: var(--muted);
 }
 
 .radar-legend-item {
@@ -2295,7 +2295,7 @@ body {
 .radar-data-item {
   flex: 1;
   text-align: center;
-  background: #F5F7FA;
+  background: var(--paper);
   border-radius: 10px;
   padding: 8px 4px;
 }
@@ -2307,14 +2307,14 @@ body {
 
 .radar-data-name {
   font-size: 10px;
-  color: #9CA3AF;
+  color: var(--muted);
   margin-bottom: 2px;
 }
 
 .radar-data-rate {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--ink);
 }
 
 .radar-data-diff {
@@ -2323,9 +2323,9 @@ body {
   margin-top: 2px;
 }
 
-.radar-data-diff.up { color: #36D399; }
-.radar-data-diff.down { color: #F87272; }
-.radar-data-diff.flat { color: #9CA3AF; }
+.radar-data-diff.up { color: var(--success); }
+.radar-data-diff.down { color: var(--danger); }
+.radar-data-diff.flat { color: var(--muted); }
 
 /* 进化树 */
 .evo-tree {
@@ -2359,12 +2359,12 @@ body {
 .evo-connector-line {
   width: 100%;
   height: 0;
-  border-top: 2px dashed #D1D5DB;
+  border-top: 2px dashed var(--rule);
 }
 
 .evo-iter-badge {
   font-size: 9px;
-  color: #FFFFFF;
+  color: var(--surface);
   padding: 1px 5px;
   border-radius: 8px;
   margin-top: 3px;
@@ -2373,7 +2373,7 @@ body {
 }
 
 .evo-node {
-  background: #F5F7FA;
+  background: var(--paper);
   border-radius: 10px;
   padding: 8px 10px;
   min-width: 90px;
@@ -2382,8 +2382,8 @@ body {
 }
 
 .evo-node.active {
-  background: rgba(54, 211, 153, 0.08);
-  border-color: #36D399;
+  background: rgba(125, 155, 118, 0.08);
+  border-color: var(--success);
 }
 
 .evo-node.retired {
@@ -2393,13 +2393,13 @@ body {
 .evo-node-label {
   font-size: 12px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--ink);
   margin-bottom: 4px;
 }
 
 .evo-node.retired .evo-node-label {
   text-decoration: line-through;
-  color: #9CA3AF;
+  color: var(--muted);
 }
 
 .evo-node-meta {
@@ -2411,7 +2411,7 @@ body {
 
 .evo-node-cycle {
   font-size: 9px;
-  color: #9CA3AF;
+  color: var(--muted);
 }
 
 .evo-node-status {
@@ -2431,7 +2431,7 @@ body {
   gap: 10px;
   align-items: flex-start;
   padding: 8px 10px;
-  background: #F5F7FA;
+  background: var(--paper);
   border-radius: 10px;
 }
 
@@ -2446,7 +2446,7 @@ body {
 .review-history-version {
   font-size: 13px;
   font-weight: 700;
-  color: #162238;
+  color: var(--accent-deep);
   background: rgba(22,34,56,0.08);
   padding: 2px 8px;
   border-radius: 6px;
@@ -2454,7 +2454,7 @@ body {
 
 .review-history-cycle {
   font-size: 10px;
-  color: #9CA3AF;
+  color: var(--muted);
 }
 
 .review-history-mid {
@@ -2464,13 +2464,13 @@ body {
 
 .review-history-range {
   font-size: 11px;
-  color: #9CA3AF;
+  color: var(--muted);
   margin-bottom: 3px;
 }
 
 .review-history-summary {
   font-size: 13px;
-  color: #4B5563;
+  color: var(--ink);
   line-height: 1.4;
 }
 

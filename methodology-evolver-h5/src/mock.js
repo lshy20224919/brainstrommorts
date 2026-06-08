@@ -8,10 +8,10 @@ const delay = (ms = 300) => new Promise(r => setTimeout(r, ms))
 // ─── 默认数据 ─────────────────────────────────────────────────
 const defaultData = {
   categories: [
-    { id: 1, name: '投资', icon: '📈', color: '#FF6B6B', sort_weight: 1, is_system_default: 1 },
-    { id: 2, name: '健康', icon: '💪', color: '#4ECDC4', sort_weight: 2, is_system_default: 1 },
-    { id: 3, name: '学习', icon: '📚', color: '#45B7D1', sort_weight: 3, is_system_default: 1 },
-    { id: 4, name: '工作', icon: '💼', color: '#96CEB4', sort_weight: 4, is_system_default: 1 }
+    { id: 1, name: '投资', icon: '◆', color: '#C17B5A', sort_weight: 1, is_system_default: 1 },
+    { id: 2, name: '健康', icon: '○', color: '#7D9B76', sort_weight: 2, is_system_default: 1 },
+    { id: 3, name: '学习', icon: '△', color: '#C9944A', sort_weight: 3, is_system_default: 1 },
+    { id: 4, name: '工作', icon: '□', color: '#8B7E74', sort_weight: 4, is_system_default: 1 }
   ],
   actions: [
     { id: 1, category_id: 1, name: '低吸高抛', remark: '在股票低估时买入，高估时卖出', subjective_weight: 9, status: 0, pinned: 1, exec_count: 8, success_count: 6, fail_count: 2, success_rate: 75.00, last_exec_time: new Date(Date.now() - 3 * 86400000).toISOString(), related_law_ids: [1, 3] },
@@ -74,9 +74,9 @@ const generateDailyRecords = () => {
 }
 
 const categorySnapshots = [
-  { version: 'v1', label: '4月第3周', data: [{ category_id: 1, name: '投资', icon: '📈', success_rate: 40 }, { category_id: 2, name: '健康', icon: '💪', success_rate: 70 }, { category_id: 3, name: '学习', icon: '📚', success_rate: 55 }, { category_id: 4, name: '工作', icon: '💼', success_rate: 80 }] },
-  { version: 'v2', label: '4月第4周', data: [{ category_id: 1, name: '投资', icon: '📈', success_rate: 60 }, { category_id: 2, name: '健康', icon: '💪', success_rate: 50 }, { category_id: 3, name: '学习', icon: '📚', success_rate: 65 }, { category_id: 4, name: '工作', icon: '💼', success_rate: 75 }] },
-  { version: 'v3', label: '5月第1周', data: [{ category_id: 1, name: '投资', icon: '📈', success_rate: 85 }, { category_id: 2, name: '健康', icon: '💪', success_rate: 45 }, { category_id: 3, name: '学习', icon: '📚', success_rate: 75 }, { category_id: 4, name: '工作', icon: '💼', success_rate: 88 }] }
+  { version: 'v1', label: '4月第3周', data: [{ category_id: 1, name: '投资', icon: '◆', success_rate: 40 }, { category_id: 2, name: '健康', icon: '○', success_rate: 70 }, { category_id: 3, name: '学习', icon: '△', success_rate: 55 }, { category_id: 4, name: '工作', icon: '□', success_rate: 80 }] },
+  { version: 'v2', label: '4月第4周', data: [{ category_id: 1, name: '投资', icon: '◆', success_rate: 60 }, { category_id: 2, name: '健康', icon: '○', success_rate: 50 }, { category_id: 3, name: '学习', icon: '△', success_rate: 65 }, { category_id: 4, name: '工作', icon: '□', success_rate: 75 }] },
+  { version: 'v3', label: '5月第1周', data: [{ category_id: 1, name: '投资', icon: '◆', success_rate: 85 }, { category_id: 2, name: '健康', icon: '○', success_rate: 45 }, { category_id: 3, name: '学习', icon: '△', success_rate: 75 }, { category_id: 4, name: '工作', icon: '□', success_rate: 88 }] }
 ]
 
 const evolutionNodes = [

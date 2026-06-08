@@ -33,14 +33,14 @@ function StatsOverview({ dailyRecords }) {
       </div>
       <div className="review-stat-divider" />
       <div className="review-stat-item">
-        <div className="review-stat-value" style={{ color: rate >= 70 ? '#36D399' : rate >= 40 ? '#FBBF24' : '#F87272' }}>
+        <div className="review-stat-value" style={{ color: rate >= 70 ? 'var(--success)' : rate >= 40 ? 'var(--warning)' : 'var(--danger)' }}>
           {rate}%
         </div>
         <div className="review-stat-label">成功率</div>
       </div>
       <div className="review-stat-divider" />
       <div className="review-stat-item">
-        <div className="review-stat-value" style={{ color: '#FBBF24' }}>{streak}</div>
+        <div className="review-stat-value" style={{ color: 'var(--warning)' }}>{streak}</div>
         <div className="review-stat-label">连续天数 🔥</div>
       </div>
     </div>
@@ -53,11 +53,11 @@ function HeatmapCalendar({ dailyRecords }) {
   const last56 = dailyRecords.slice(-56)
 
   const getColor = (record) => {
-    if (!record || record.exec_count === 0) return '#E5E7EB'
+    if (!record || record.exec_count === 0) return 'var(--rule)'
     const rate = record.success_count / record.exec_count
-    if (rate >= 0.8) return '#36D399'
-    if (rate >= 0.5) return '#FBBF24'
-    return '#F87272'
+    if (rate >= 0.8) return 'var(--success)'
+    if (rate >= 0.5) return 'var(--warning)'
+    return 'var(--danger)'
   }
 
   const getOpacity = (record) => {
@@ -100,17 +100,17 @@ function HeatmapCalendar({ dailyRecords }) {
         ))}
       </div>
       <div className="heatmap-legend">
-        <span className="heatmap-legend-item"><span className="heatmap-legend-dot" style={{ background: '#36D399' }} />高成功率</span>
-        <span className="heatmap-legend-item"><span className="heatmap-legend-dot" style={{ background: '#FBBF24' }} />中等</span>
-        <span className="heatmap-legend-item"><span className="heatmap-legend-dot" style={{ background: '#F87272' }} />低成功率</span>
-        <span className="heatmap-legend-item"><span className="heatmap-legend-dot" style={{ background: '#E5E7EB' }} />未执行</span>
+        <span className="heatmap-legend-item"><span className="heatmap-legend-dot" style={{ background: 'var(--success)' }} />高成功率</span>
+        <span className="heatmap-legend-item"><span className="heatmap-legend-dot" style={{ background: 'var(--warning)' }} />中等</span>
+        <span className="heatmap-legend-item"><span className="heatmap-legend-dot" style={{ background: 'var(--danger)' }} />低成功率</span>
+        <span className="heatmap-legend-item"><span className="heatmap-legend-dot" style={{ background: 'var(--rule)' }} />未执行</span>
       </div>
       {selectedRecord && (
         <div className="heatmap-tooltip">
           <span className="heatmap-tooltip-date">{getWeekLabel(selectedRecord.date)}</span>
           <span>执行 {selectedRecord.exec_count} 次</span>
-          <span style={{ color: '#36D399' }}>成功 {selectedRecord.success_count}</span>
-          <span style={{ color: '#F87272' }}>失败 {selectedRecord.exec_count - selectedRecord.success_count}</span>
+          <span style={{ color: 'var(--success)' }}>成功 {selectedRecord.success_count}</span>
+          <span style={{ color: 'var(--danger)' }}>失败 {selectedRecord.exec_count - selectedRecord.success_count}</span>
         </div>
       )}
     </div>
@@ -158,15 +158,15 @@ function TrendChart({ dailyRecords }) {
           {yLabelsRate.map((v, i) => (
             <text key={`r${i}`} x={W - PX + 4} y={PY + chartH * (1 - i / 2)} fontSize="8" fill="#9CA3AF" textAnchor="start" dominantBaseline="middle">{v}</text>
           ))}
-          <polyline points={toPolyline(execPoints)} fill="none" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <polyline points={toPolyline(ratePoints)} fill="none" stroke="#36D399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 2" />
-          {execPoints.map((p, i) => <circle key={`e${i}`} cx={p.x} cy={p.y} r="2.5" fill="#6366F1" />)}
-          {ratePoints.map((p, i) => <circle key={`r${i}`} cx={p.x} cy={p.y} r="2.5" fill="#36D399" />)}
+          <polyline points={toPolyline(execPoints)} fill="none" stroke="#C17B5A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <polyline points={toPolyline(ratePoints)} fill="none" stroke="#7D9B76" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="4 2" />
+          {execPoints.map((p, i) => <circle key={`e${i}`} cx={p.x} cy={p.y} r="2.5" fill="#C17B5A" />)}
+          {ratePoints.map((p, i) => <circle key={`r${i}`} cx={p.x} cy={p.y} r="2.5" fill="#7D9B76" />)}
         </svg>
       </div>
       <div className="trend-legend">
-        <span className="trend-legend-item"><span className="trend-legend-line" style={{ background: '#6366F1' }} />执行次数</span>
-        <span className="trend-legend-item"><span className="trend-legend-line dashed" style={{ background: '#36D399' }} />成功率</span>
+        <span className="trend-legend-item"><span className="trend-legend-line" style={{ background: '#C17B5A' }} />执行次数</span>
+        <span className="trend-legend-item"><span className="trend-legend-line dashed" style={{ background: '#7D9B76' }} />成功率</span>
       </div>
     </div>
   )
@@ -244,13 +244,13 @@ function RadarChart({ snapshots }) {
             return <line key={i} x1={cx} y1={cy} x2={p.x.toFixed(1)} y2={p.y.toFixed(1)} stroke="#E5E7EB" strokeWidth="1" />
           })}
           {/* 对比版本区域 */}
-          <path d={toPath(compare.data)} fill="rgba(99,102,241,0.15)" stroke="#6366F1" strokeWidth="1.5" strokeDasharray="4 2" />
+          <path d={toPath(compare.data)} fill="rgba(193,123,90,0.12)" stroke="#C17B5A" strokeWidth="1.5" strokeDasharray="4 2" />
           {/* 当前版本区域 */}
-          <path d={toPath(current.data)} fill="rgba(54,211,153,0.2)" stroke="#36D399" strokeWidth="2" />
+          <path d={toPath(current.data)} fill="rgba(125,155,118,0.15)" stroke="#7D9B76" strokeWidth="2" />
           {/* 当前版本数据点 */}
           {current.data.map((d, i) => {
             const p = getPoint(d.success_rate, i)
-            return <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="3" fill="#36D399" />
+            return <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="3" fill="#7D9B76" />
           })}
           {/* 轴标签 */}
           {axes.map((d, i) => {
@@ -266,11 +266,11 @@ function RadarChart({ snapshots }) {
         </svg>
         <div className="radar-legend">
           <span className="radar-legend-item">
-            <span className="radar-legend-line" style={{ background: '#36D399' }} />
+            <span className="radar-legend-line" style={{ background: '#7D9B76' }} />
             {current.label}（当前）
           </span>
           <span className="radar-legend-item">
-            <span className="radar-legend-line" style={{ background: '#6366F1', opacity: 0.7 }} />
+            <span className="radar-legend-line" style={{ background: '#C17B5A', opacity: 0.7 }} />
             {compare.label}
           </span>
         </div>
@@ -297,9 +297,9 @@ function RadarChart({ snapshots }) {
 
 // ─── 进化树 ───────────────────────────────────────────────────
 function EvolutionTree({ nodes }) {
-  const STATUS_COLOR = { active: '#36D399', evolved: '#9CA3AF', retired: '#F87272' }
+  const STATUS_COLOR = { active: '#7D9B76', evolved: '#9E9E9E', retired: '#B85C4A' }
   const STATUS_LABEL = { active: '当前', evolved: '已迭代', retired: '已淘汰' }
-  const ITER_COLOR = { '固化': '#36D399', '优化': '#45B7D1', '降级': '#FBBF24', '淘汰': '#F87272' }
+  const ITER_COLOR = { '固化': '#7D9B76', '优化': '#C17B5A', '降级': '#C9944A', '淘汰': '#B85C4A' }
 
   // 找出所有根节点，构建链
   const roots = nodes.filter(n => !n.parent_id)
@@ -326,7 +326,7 @@ function EvolutionTree({ nodes }) {
                 <div key={node.id} className="evo-node-wrap">
                   {idx > 0 && (
                     <div className="evo-connector">
-                      <div className="evo-connector-line" style={{ borderColor: node.status === 'retired' ? '#F87272' : '#D1D5DB' }} />
+                      <div className="evo-connector-line" style={{ borderColor: node.status === 'retired' ? '#B85C4A' : 'var(--rule)' }} />
                       <div className="evo-iter-badge" style={{ background: ITER_COLOR[node.iteration_type] || '#9CA3AF' }}>
                         {node.iteration_type}
                       </div>
@@ -401,9 +401,14 @@ export default function ReviewPage() {
   if (loading) {
     return (
       <div className="page">
-        <div className="page-header"><h2>复盘中心</h2></div>
+        <div className="page-header">
+          <div className="page-header-row">
+            <h2>复盘中心</h2>
+            <span className="page-header-sub">review & reflect</span>
+          </div>
+        </div>
         <div className="page-body" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 60 }}>
-          <div style={{ color: '#9CA3AF', fontSize: 14 }}>加载中...</div>
+          <div style={{ color: 'var(--muted)', fontSize: 14 }}>加载中...</div>
         </div>
       </div>
     )
@@ -411,7 +416,12 @@ export default function ReviewPage() {
 
   return (
     <div className="page">
-      <div className="page-header"><h2>复盘中心</h2></div>
+      <div className="page-header">
+        <div className="page-header-row">
+          <h2>复盘中心</h2>
+          <span className="page-header-sub">review & reflect</span>
+        </div>
+      </div>
       <div className="page-body review-page-body">
         <StatsOverview dailyRecords={dailyRecords} />
         <HeatmapCalendar dailyRecords={dailyRecords} />
