@@ -18,13 +18,20 @@ const TABS = [
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home')
+  const [cardLibInit, setCardLibInit] = useState(null)
+
+  const handleSwitchTab = (tab, params) => {
+    if (params) setCardLibInit(params)
+    else setCardLibInit(null)
+    setActiveTab(tab)
+  }
 
   return (
     <ToastProvider>
     <div className="app">
       <div className="page-content">
-        {activeTab === 'home' && <HomePage onSwitchTab={setActiveTab} />}
-        {activeTab === 'card' && <CardLibPage />}
+        {activeTab === 'home' && <HomePage onSwitchTab={handleSwitchTab} />}
+        {activeTab === 'card' && <CardLibPage initParams={cardLibInit} />}
         {activeTab === 'sop' && <SopPage />}
         {activeTab === 'review' && <ReviewPage />}
         {activeTab === 'profile' && <ProfilePage />}
@@ -36,7 +43,7 @@ export default function App() {
             <button
               key={tab.key}
               className={`tabbar-item ${activeTab === tab.key ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => { setCardLibInit(null); setActiveTab(tab.key) }}
             >
               <span className="tabbar-icon"><Icon size={22} strokeWidth={2} /></span>
               <span className="tabbar-label">{tab.label}</span>

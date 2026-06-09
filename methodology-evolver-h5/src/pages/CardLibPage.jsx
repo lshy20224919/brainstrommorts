@@ -47,9 +47,9 @@ function UnifiedCard({ title, badge, badgeClass, meta, data, borderColor, onClic
   )
 }
 
-export default function CardLibPage() {
-  const [primaryTab, setPrimaryTab] = useState('behavior')
-  const [subTab, setSubTab] = useState('action')
+export default function CardLibPage({ initParams }) {
+  const [primaryTab, setPrimaryTab] = useState(initParams?.primaryTab || 'behavior')
+  const [subTab, setSubTab] = useState(initParams?.subTab || 'action')
   const [categories, setCategories] = useState([])
   const [actions, setActions] = useState([])
   const [laws, setLaws] = useState([])

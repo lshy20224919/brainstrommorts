@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import Modal from './Modal'
 import { useDraft } from '../hooks/useDraft'
+import { api } from '../mock'
 
 export default function CreateMistakeModal({ visible, categories, laws, onClose, onSubmit, initial }) {
   const draftKey = initial ? null : 'draft_create_mistake'
@@ -11,6 +12,7 @@ export default function CreateMistakeModal({ visible, categories, laws, onClose,
   const [weight, setWeight] = useState(initial?.subjective_weight ?? draft.weight ?? 5)
   const [remark, setRemark] = useState(initial?.remark ?? draft.remark ?? '')
   const [relatedLawIds, setRelatedLawIds] = useState(initial?.related_law_ids ?? draft.relatedLawIds ?? [])
+  const [warningLaws, setWarningLaws] = useState(null)
 
   const updateDraft = (patch) => { if (draftKey) setDraft(prev => ({ ...prev, ...patch })) }
 
@@ -20,10 +22,20 @@ export default function CreateMistakeModal({ visible, categories, laws, onClose,
     updateDraft({ relatedLawIds: next })
   }
 
-  const handleSubmit = () => {
-    if (!name.trim() || !categoryId) return
+  const doSubmit = () => {
     onSubmit({ name: name.trim(), category_id: Number(categoryId), subjective_weight: weight, remark, related_law_ids: relatedLawIds })
     if (draftKey) clearDraft()
+    setWarningLaws(null)
+  }
+
+  const handleSubmit = async () => {
+    if (!name.trim() || !categoryId) return
+    const matched = await api.checkNegativeLaws(Number(categoryId))
+    if (matched && matched.length > 0) {
+      setWarningLaws(matched)
+      return
+    }
+    doSubmit()
   }
 
   if (!visible) return null
@@ -60,6 +72,18 @@ export default function CreateMistakeModal({ visible, categories, laws, onClose,
                 <span className="law-select-desc">{l.law_desc}</span>
               </label>
             ))}
+          </div>
+        </div>
+      )}
+      {warningLaws && (
+        <div className="negative-law-warning">
+          <div className="negative-law-warning-title">⚠ 该分类下有负向规律提醒</div>
+          {warningLaws.map(l => (
+            <div key={l.id} className="negative-law-warning-item">{l.law_desc}</div>
+          ))}
+          <div className="negative-law-warning-actions">
+            <button className="btn btn-outline" onClick={() => setWarningLaws(null)}>返回修改</button>
+            <button className="btn btn-primary" onClick={doSubmit}>知道了，继续</button>
           </div>
         </div>
       )}

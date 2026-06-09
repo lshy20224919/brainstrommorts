@@ -375,6 +375,138 @@ function ReviewHistory({ reviews }) {
   )
 }
 
+// ─── 新建复盘弹窗 ────────────────────────────────────────────
+function ReviewCreateModal({ onClose, onCreate }) {
+  const [cycle, setCycle] = useState('week')
+
+  const getDateRange = () => {
+    const now = new Date()
+    const end = now.toISOString().slice(0, 10)
+    const days = cycle === 'week' ? 7 : 30
+    const start = new Date(now - days * 86400000).toISOString().slice(0, 10)
+    return { start, end }
+  }
+
+  const handleCreate = () => {
+    const { start, end } = getDateRange()
+    onCreate({ review_cycle: cycle, start_time: start, end_time: end })
+  }
+
+  const { start, end } = getDateRange()
+
+  return (
+    <div className="modal-mask" onClick={onClose}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+        <div className="modal-title">新建复盘</div>
+        <div className="review-create-cycles">
+          <button className={`review-cycle-btn ${cycle === 'week' ? 'active' : ''}`} onClick={() => setCycle('week')}>周复盘</button>
+          <button className={`review-cycle-btn ${cycle === 'month' ? 'active' : ''}`} onClick={() => setCycle('month')}>月复盘</button>
+        </div>
+        <div className="review-create-range">复盘范围：{start} ~ {end}</div>
+        <div className="g-modal-actions">
+          <button className="btn btn-outline" onClick={onClose}>取消</button>
+          <button className="btn btn-primary" onClick={handleCreate}>开始复盘</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── 复盘迭代页面 ────────────────────────────────────────────
+function ReviewIterationPage({ reviewData, onClose, onDone }) {
+  const { id: reviewId, snapshot_version, items } = reviewData
+  const [iterations, setIterations] = useState(items.map(() => null))
+  const [summary, setSummary] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  const currentIdx = iterations.findIndex(it => it === null)
+  const allDone = iterations.every(it => it !== null)
+  const doneCount = iterations.filter(it => it !== null).length
+
+  const handleJudge = (idx, type) => {
+    setIterations(prev => { const n = [...prev]; n[idx] = type; return n })
+  }
+
+  const handleSubmit = async () => {
+    setSubmitting(true)
+    const iterData = items.map((item, i) => ({
+      card_id: item.id,
+      card_type: item.type,
+      iteration_type: iterations[i]
+    }))
+    await api.submitReviewIteration(reviewId, iterData, summary)
+    setSubmitting(false)
+    onDone()
+  }
+
+  const ITER_OPTIONS = [
+    { type: '固化', label: '固化', className: 'success' },
+    { type: '优化', label: '优化', className: 'accent' },
+    { type: '降级', label: '降级', className: 'warning' },
+    { type: '淘汰', label: '淘汰', className: 'danger' }
+  ]
+
+  return (
+    <div className="exec-page">
+      <div className="exec-header">
+        <button className="exec-back" onClick={onClose}>←</button>
+        <div className="exec-title">复盘 {snapshot_version}</div>
+        <div className="exec-progress">{doneCount}/{items.length}</div>
+      </div>
+
+      <div className="review-iter-progress">
+        <div className="review-iter-bar" style={{ width: `${(doneCount / items.length) * 100}%` }} />
+      </div>
+
+      <div className="exec-body-new" style={{ padding: '16px' }}>
+        {currentIdx !== -1 && (
+          <div className="review-focus-card">
+            <div className="review-focus-type">{items[currentIdx].type === 'action' ? '正确的事' : '规律'}</div>
+            <div className="review-focus-name">{items[currentIdx].name}</div>
+            <div className="review-focus-meta">
+              {items[currentIdx].category_name}
+              {items[currentIdx].exec_count != null && ` · ${items[currentIdx].type === 'action' ? '执行' : '触发'} ${items[currentIdx].exec_count} 次`}
+              {items[currentIdx].success_rate != null && ` · ${items[currentIdx].success_rate}%`}
+            </div>
+            <div className="review-iter-btns">
+              {ITER_OPTIONS.map(opt => (
+                <button key={opt.type} className={`review-iter-btn ${opt.className}`} onClick={() => handleJudge(currentIdx, opt.type)}>{opt.label}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {allDone && (
+          <div className="review-summary-input">
+            <div className="review-summary-label">复盘总结（选填）</div>
+            <textarea className="form-textarea" value={summary} onChange={e => setSummary(e.target.value)} placeholder="记录本次复盘的感悟..." rows={3} />
+          </div>
+        )}
+
+        <div className="review-iter-list">
+          {items.map((item, idx) => {
+            if (idx === currentIdx) return null
+            const judged = iterations[idx]
+            return (
+              <div key={item.id + item.type} className={`review-iter-item ${judged ? 'done' : ''}`} onClick={() => judged && handleJudge(idx, null)}>
+                <span className="review-iter-item-name">{item.name}</span>
+                {judged && <span className={`review-iter-item-badge ${ITER_OPTIONS.find(o => o.type === judged)?.className}`}>{judged}</span>}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="exec-footer">
+        <button className="btn btn-outline" onClick={onClose}>放弃</button>
+        <button className={`btn btn-primary${!allDone ? ' disabled' : ''}`} disabled={!allDone || submitting} onClick={handleSubmit}>
+          {submitting ? '提交中...' : '提交复盘'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── 主页面 ───────────────────────────────────────────────────
 export default function ReviewPage() {
   const [dailyRecords, setDailyRecords] = useState([])
@@ -382,8 +514,10 @@ export default function ReviewPage() {
   const [evolutionNodes, setEvolutionNodes] = useState([])
   const [reviews, setReviews] = useState([])
   const [loading, setLoading] = useState(true)
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [iterationData, setIterationData] = useState(null)
 
-  useEffect(() => {
+  const loadData = () => {
     Promise.all([
       api.getDailyRecords(),
       api.getCategorySnapshots(),
@@ -396,7 +530,25 @@ export default function ReviewPage() {
       setReviews(rv)
       setLoading(false)
     })
-  }, [])
+  }
+
+  useEffect(() => { loadData() }, [])
+
+  const handleCreateReview = async (data) => {
+    const result = await api.createReview(data)
+    setShowCreateModal(false)
+    setIterationData(result)
+  }
+
+  const handleIterationDone = () => {
+    setIterationData(null)
+    setLoading(true)
+    loadData()
+  }
+
+  if (iterationData) {
+    return <ReviewIterationPage reviewData={iterationData} onClose={() => setIterationData(null)} onDone={handleIterationDone} />
+  }
 
   if (loading) {
     return (
@@ -430,6 +582,9 @@ export default function ReviewPage() {
         <EvolutionTree nodes={evolutionNodes} />
         <ReviewHistory reviews={reviews} />
       </div>
+
+      <button className="fab" onClick={() => setShowCreateModal(true)}>+</button>
+      {showCreateModal && <ReviewCreateModal onClose={() => setShowCreateModal(false)} onCreate={handleCreateReview} />}
     </div>
   )
 }

@@ -13,26 +13,26 @@ import SmartSuggestion from '../components/SmartSuggestion'
 import PostActionGuide from '../components/PostActionGuide'
 import Loading from '../components/Loading'
 
-function DataDashboard({ stats }) {
+function DataDashboard({ stats, onSwitchTab }) {
   if (!stats) return null
   return (
     <div className="data-dashboard">
-      <div className="dashboard-item">
+      <div className="dashboard-item" onClick={() => onSwitchTab?.('card', { primaryTab: 'behavior', subTab: 'action' })} style={{ cursor: 'pointer' }}>
         <div className="dashboard-value">{stats.action_count}</div>
         <div className="dashboard-label">正确的事</div>
         <div className="dashboard-sub">触发 {stats.action_trigger_count} 次</div>
       </div>
-      <div className="dashboard-item">
+      <div className="dashboard-item" onClick={() => onSwitchTab?.('card', { primaryTab: 'behavior', subTab: 'mistake' })} style={{ cursor: 'pointer' }}>
         <div className="dashboard-value">{stats.mistake_count}</div>
         <div className="dashboard-label">错误的事</div>
         <div className="dashboard-sub">—</div>
       </div>
-      <div className="dashboard-item">
+      <div className="dashboard-item" onClick={() => onSwitchTab?.('card', { primaryTab: 'law', subTab: 'positive' })} style={{ cursor: 'pointer' }}>
         <div className="dashboard-value">{stats.positive_law_count}</div>
         <div className="dashboard-label">正向规律</div>
         <div className="dashboard-sub">触发 {stats.positive_law_trigger_count} 次</div>
       </div>
-      <div className="dashboard-item">
+      <div className="dashboard-item" onClick={() => onSwitchTab?.('card', { primaryTab: 'law', subTab: 'negative' })} style={{ cursor: 'pointer' }}>
         <div className="dashboard-value">{stats.negative_law_count}</div>
         <div className="dashboard-label">负向规律</div>
         <div className="dashboard-sub">触发 {stats.negative_law_trigger_count} 次</div>
@@ -106,7 +106,7 @@ const RANK_TABS = [
   { key: 'negative_law', label: '负向规律' }
 ]
 
-function RankSection({ categories }) {
+function RankSection({ categories, onSwitchTab }) {
   const [rankIndex, setRankIndex] = useState(0)
   const [rankings, setRankings] = useState({ action: [], mistake: [], positive_law: [], negative_law: [] })
   const [rankConfig, setRankConfig] = useState({ action: 5, mistake: 5, positive_law: 5, negative_law: 5 })
@@ -140,7 +140,10 @@ function RankSection({ categories }) {
         {currentList.length === 0 ? <div className="rank-empty">暂无数据</div> : (
           <div className="rank-list">
             {currentList.map((item, index) => (
-              <div key={item.id} className="rank-item">
+              <div key={item.id} className="rank-item" onClick={() => {
+                const tabMap = { action: { primaryTab: 'behavior', subTab: 'action' }, mistake: { primaryTab: 'behavior', subTab: 'mistake' }, positive_law: { primaryTab: 'law', subTab: 'positive' }, negative_law: { primaryTab: 'law', subTab: 'negative' } }
+                onSwitchTab?.('card', tabMap[currentKey])
+              }} style={{ cursor: 'pointer' }}>
                 <span className={`rank-num ${index < 3 ? 'top3' : ''}`}>{index + 1}</span>
                 <div className="rank-info"><span className="rank-name">{item.name ?? item.law_desc}</span><span className="rank-category">{getCategoryName(item.category_id)}</span></div>
                 <div className="rank-stats">
@@ -240,7 +243,7 @@ export default function HomePage({ onSwitchTab }) {
       </div>
       <div className="page-body">
         {loading ? <Loading rows={4} /> : (<>
-          <DataDashboard stats={stats} />
+          <DataDashboard stats={stats} onSwitchTab={onSwitchTab} />
           <EvolutionJourney stages={stages} />
           <SmartSuggestion suggestion={suggestion} onAction={handleSuggestionAction} />
           <QuickActions onAddAction={() => setModal('action')} onAddMistake={() => setModal('mistake')} onAddPositiveLaw={() => setModal('positive_law')} onAddNegativeLaw={() => setModal('negative_law')} onCheckin={() => setModal('checkin')} onAddInspiration={() => setModal('inspiration')} />
@@ -251,7 +254,7 @@ export default function HomePage({ onSwitchTab }) {
             else if (key === 'draft_create_inspiration') setModal('inspiration')
           }} onClear={() => { DRAFT_KEYS.forEach(({ key }) => localStorage.removeItem(key)) }} />
           <TodoSection todos={todos} onDismiss={handleDismiss} onMigrateClick={handleMigrateClick} />
-          <RankSection categories={categories} />
+          <RankSection categories={categories} onSwitchTab={onSwitchTab} />
         </>)}
       </div>
 

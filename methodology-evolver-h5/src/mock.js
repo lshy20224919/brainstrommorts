@@ -475,6 +475,85 @@ export const api = {
   getCategorySnapshots: async () => { await delay(); return [...mockApi.categorySnapshots] },
   getEvolutionNodes: async () => { await delay(); return [...mockApi.evolutionNodes] },
 
+  createReview: async ({ review_cycle, start_time, end_time }) => {
+    await delay()
+    const items = [
+      ...mockApi.actions.filter(a => a.status === 0).map(a => {
+        const cat = mockApi.categories.find(c => c.id === a.category_id)
+        return { id: a.id, type: 'action', name: a.name, exec_count: a.exec_count, success_rate: a.success_rate, category_name: cat?.name || '' }
+      }),
+      ...mockApi.laws.filter(l => l.status === 0).map(l => {
+        const cat = mockApi.categories.find(c => c.id === l.category_id)
+        return { id: l.id, type: 'law', name: l.law_desc, exec_count: l.trigger_count, success_rate: null, category_name: cat?.name || '' }
+      })
+    ]
+    const maxVersion = mockApi.reviews.length > 0 ? Math.max(...mockApi.reviews.map(r => parseInt(r.snapshot_version.replace('v', '')))) : 0
+    const newVersion = `v${maxVersion + 1}`
+    const review = { id: Date.now(), review_cycle, start_time, end_time, snapshot_version: newVersion, review_summary: null, create_time: new Date().toISOString(), _items: items }
+    mockApi.reviews.push(review)
+    persist()
+    return { id: review.id, snapshot_version: newVersion, items }
+  },
+
+  submitReviewIteration: async (reviewId, iterations, summary) => {
+    await delay()
+    const review = mockApi.reviews.find(r => r.id === reviewId)
+    if (review) review.review_summary = summary
+
+    for (const iter of iterations) {
+      if (iter.card_type === 'action') {
+        const action = mockApi.actions.find(a => a.id === iter.card_id)
+        if (!action) continue
+        if (iter.iteration_type === '固化') action.pinned = 1
+        else if (iter.iteration_type === '降级') action.pinned = 0
+        else if (iter.iteration_type === '淘汰') action.status = 2
+
+        const prevNode = mockApi.evolutionNodes.filter(n => n.type === 'action' && n.id.startsWith(`a${iter.card_id}-`)).pop()
+        const vNum = prevNode ? parseInt(prevNode.id.split('-v')[1]) + 1 : 1
+        mockApi.evolutionNodes.push({
+          id: `a${iter.card_id}-v${vNum}`,
+          label: `${action.name} v${vNum}`,
+          iteration_type: iter.iteration_type,
+          parent_id: prevNode?.id || null,
+          review_cycle: review?.snapshot_version || '',
+          status: iter.iteration_type === '淘汰' ? 'retired' : 'active',
+          type: 'action'
+        })
+        if (prevNode && prevNode.status === 'active') prevNode.status = 'evolved'
+      } else if (iter.card_type === 'law') {
+        const law = mockApi.laws.find(l => l.id === iter.card_id)
+        if (!law) continue
+        if (iter.iteration_type === '淘汰') law.status = 2
+
+        const prevNode = mockApi.evolutionNodes.filter(n => n.type === 'law' && n.id.startsWith(`l${iter.card_id}-`)).pop()
+        const vNum = prevNode ? parseInt(prevNode.id.split('-v')[1]) + 1 : 1
+        mockApi.evolutionNodes.push({
+          id: `l${iter.card_id}-v${vNum}`,
+          label: `${law.law_desc.slice(0, 10)} v${vNum}`,
+          iteration_type: iter.iteration_type,
+          parent_id: prevNode?.id || null,
+          review_cycle: review?.snapshot_version || '',
+          status: iter.iteration_type === '淘汰' ? 'retired' : 'active',
+          type: 'law'
+        })
+        if (prevNode && prevNode.status === 'active') prevNode.status = 'evolved'
+      }
+    }
+
+    const snapshot = {
+      version: review?.snapshot_version || 'v?',
+      label: `${review?.start_time?.slice(5)} 复盘`,
+      data: mockApi.categories.map(cat => {
+        const catActions = mockApi.actions.filter(a => a.category_id === cat.id && a.status === 0)
+        const avgRate = catActions.length > 0 ? Math.round(catActions.reduce((s, a) => s + (a.success_rate || 0), 0) / catActions.length) : 0
+        return { category_id: cat.id, name: cat.name, icon: cat.icon, success_rate: avgRate }
+      })
+    }
+    mockApi.categorySnapshots.push(snapshot)
+    persist()
+    return { success: true }
+  },
+
   // 设置
   getSettings: async () => { await delay(); return { ...mockApi.settings } },
   updateSettings: async (patch) => { await delay(); Object.assign(mockApi.settings, patch); persist(); return { ...mockApi.settings } },

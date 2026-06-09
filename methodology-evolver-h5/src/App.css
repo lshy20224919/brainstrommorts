@@ -2474,6 +2474,165 @@ body {
   line-height: 1.4;
 }
 
+/* ─── 避雷提醒 ─────────────────────────────────────────────── */
+.negative-law-warning {
+  background: rgba(184, 92, 74, 0.06);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.negative-law-warning-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--danger);
+  margin-bottom: 8px;
+}
+.negative-law-warning-item {
+  font-size: 12px;
+  color: var(--ink);
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(184, 92, 74, 0.1);
+}
+.negative-law-warning-item:last-child { border-bottom: none; }
+.negative-law-warning-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.negative-law-warning-actions .btn { flex: 1; padding: 8px; font-size: 12px; }
+
+/* ─── 复盘迭代 ─────────────────────────────────────────────── */
+.review-create-cycles {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.review-cycle-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper);
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.review-cycle-btn.active {
+  border-color: var(--accent);
+  background: rgba(193, 123, 90, 0.08);
+  color: var(--accent-deep);
+  font-weight: 600;
+}
+.review-create-range {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.review-iter-progress {
+  height: 3px;
+  background: var(--rule);
+}
+.review-iter-bar {
+  height: 100%;
+  background: var(--success);
+  transition: width 0.3s ease;
+}
+
+.review-focus-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.review-focus-type {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+.review-focus-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.review-focus-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.review-iter-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.review-iter-btn {
+  padding: 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--paper);
+  transition: all 0.15s;
+}
+.review-iter-btn.success { color: var(--success); border-color: var(--success); }
+.review-iter-btn.success:hover { background: rgba(125,155,118,0.1); }
+.review-iter-btn.accent { color: var(--accent); border-color: var(--accent); }
+.review-iter-btn.accent:hover { background: rgba(193,123,90,0.08); }
+.review-iter-btn.warning { color: var(--warning); border-color: var(--warning); }
+.review-iter-btn.warning:hover { background: rgba(201,148,74,0.08); }
+.review-iter-btn.danger { color: var(--danger); border-color: var(--danger); }
+.review-iter-btn.danger:hover { background: rgba(184,92,74,0.08); }
+
+.review-summary-input {
+  margin-bottom: 16px;
+}
+.review-summary-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.review-iter-list {
+  display: flex;
+  flex-direction: column;
+}
+.review-iter-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+}
+.review-iter-item:last-child { border-bottom: none; }
+.review-iter-item-name {
+  font-size: 13px;
+  color: var(--ink);
+}
+.review-iter-item.done .review-iter-item-name {
+  color: var(--muted);
+}
+.review-iter-item-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+.review-iter-item-badge.success { color: var(--success); background: rgba(125,155,118,0.1); }
+.review-iter-item-badge.accent { color: var(--accent); background: rgba(193,123,90,0.08); }
+.review-iter-item-badge.warning { color: var(--warning); background: rgba(201,148,74,0.08); }
+.review-iter-item-badge.danger { color: var(--danger); background: rgba(184,92,74,0.08); }
+
 /* ─── 个人中心 ─────────────────────────────────────────────── */
 .profile-page .page-body {
   padding: 12px 16px;
