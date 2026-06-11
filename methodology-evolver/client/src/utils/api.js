@@ -92,7 +92,15 @@ const api = {
     dashboard: () => request({ url: '/stats/dashboard' }),
     ranking: (params) => request({ url: '/stats/ranking', data: params }),
     todos: () => request({ url: '/stats/todos' }),
-    dismissTodo: (data) => request({ url: '/stats/todos/dismiss', method: 'POST', data })
+    dismissTodo: (data) => request({ url: '/stats/todos/dismiss', method: 'POST', data }),
+    rankConfig: () => request({ url: '/stats/rank-config' }),
+    updateRankConfig: (data) => request({ url: '/stats/rank-config', method: 'PUT', data })
+  },
+  evolution: {
+    progress: () => request({ url: '/evolution/progress' })
+  },
+  suggestions: {
+    smart: () => request({ url: '/suggestions/smart' })
   },
   migrate: {
     recommend: (params) => request({ url: '/migrate/recommend', data: params }),
@@ -105,7 +113,10 @@ const api = {
     create: (data) => request({ url: '/reviews', method: 'POST', data }),
     snapshot: (id) => request({ url: `/reviews/${id}/snapshot` }),
     iterateAction: (id, data) => request({ url: `/reviews/iterate/action/${id}`, method: 'PUT', data }),
-    iterateLaw: (id, data) => request({ url: `/reviews/iterate/law/${id}`, method: 'PUT', data })
+    iterateLaw: (id, data) => request({ url: `/reviews/iterate/law/${id}`, method: 'PUT', data }),
+    retiredItems: (params) => request({ url: '/reviews/retired', data: params }),
+    restoreItem: (type, id) => request({ url: `/reviews/retired/${type}/${id}/restore`, method: 'PUT' }),
+    permanentDeleteItem: (type, id) => request({ url: `/reviews/retired/${type}/${id}`, method: 'DELETE' })
   },
   sops: {
     list: (params) => request({ url: '/sops', data: params }),

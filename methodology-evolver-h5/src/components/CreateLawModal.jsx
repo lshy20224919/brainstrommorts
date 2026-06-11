@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Circle } from 'lucide-react'
 import Modal from './Modal'
 import { useDraft } from '../hooks/useDraft'
 
@@ -35,8 +36,8 @@ export default function CreateLawModal({ visible, lawType: fixedType, categories
         <div className="g-form-group">
           <div className="g-form-label">规律类型 *</div>
           <div className="g-law-type-row">
-            <button className={`g-law-type-btn positive ${lawType === 1 ? 'active' : ''}`} onClick={() => { setLawType(1); updateDraft({ lawType: 1 }) }}>🟢 正向规律</button>
-            <button className={`g-law-type-btn negative ${lawType === 2 ? 'active' : ''}`} onClick={() => { setLawType(2); updateDraft({ lawType: 2 }) }}>🔴 负向规律</button>
+            <button className={`g-law-type-btn positive ${lawType === 1 ? 'active' : ''}`} onClick={() => { setLawType(1); updateDraft({ lawType: 1 }) }}><Circle size={10} fill="var(--success)" stroke="var(--success)" /> 正向规律</button>
+            <button className={`g-law-type-btn negative ${lawType === 2 ? 'active' : ''}`} onClick={() => { setLawType(2); updateDraft({ lawType: 2 }) }}><Circle size={10} fill="var(--danger)" stroke="var(--danger)" /> 负向规律</button>
           </div>
         </div>
       )}

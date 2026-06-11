@@ -15,6 +15,7 @@
   --positive-color: #36D399;
   --negative-color: #F87272;
   --archived-color: #9CA3AF;
+  --accent-color: #F5A623;
 }
 
 .dark {
@@ -32,6 +33,7 @@
   --positive-color: #36D399;
   --negative-color: #F87272;
   --archived-color: #64748B;
+  --accent-color: #F5A623;
 }
 
 /* 变量映射（SCSS） */
@@ -47,6 +49,7 @@ $warning-color: var(--warning-color);
 $positive-color: var(--positive-color);
 $negative-color: var(--negative-color);
 $archived-color: var(--archived-color);
+$accent-color: var(--accent-color);
 
 /* 深色模式变量 */
 $dark-bg-color: #0F1724;

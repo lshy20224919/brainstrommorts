@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
+import { Flame } from 'lucide-react'
 import { api } from '../mock'
+import SensitiveText from '../components/SensitiveText'
 
 // ─── 工具 ─────────────────────────────────────────────────────
 function getWeekLabel(dateStr) {
@@ -41,7 +43,7 @@ function StatsOverview({ dailyRecords }) {
       <div className="review-stat-divider" />
       <div className="review-stat-item">
         <div className="review-stat-value" style={{ color: 'var(--warning)' }}>{streak}</div>
-        <div className="review-stat-label">连续天数 🔥</div>
+        <div className="review-stat-label">连续天数 <Flame size={12} className="review-streak-icon" /></div>
       </div>
     </div>
   )
@@ -353,7 +355,7 @@ function EvolutionTree({ nodes }) {
 
 // ─── 复盘历史列表 ─────────────────────────────────────────────
 function ReviewHistory({ reviews }) {
-  const CYCLE_LABEL = { week: '周复盘', month: '月复盘', day: '日复盘' }
+  const CYCLE_LABEL = { day: '日复盘', week: '周复盘', month: '月复盘', custom: '自定义' }
   return (
     <div className="review-section">
       <div className="review-section-title">复盘历史</div>
@@ -366,7 +368,9 @@ function ReviewHistory({ reviews }) {
             </div>
             <div className="review-history-mid">
               <div className="review-history-range">{r.start_time} ~ {r.end_time}</div>
-              <div className="review-history-summary">{r.review_summary || '暂无总结'}</div>
+              {r.review_summary
+                ? <SensitiveText as="div" className="review-history-summary" id={`review-summary-${r.id}`} value={r.review_summary} />
+                : <div className="review-history-summary">暂无总结</div>}
             </div>
           </div>
         ))}
@@ -375,34 +379,201 @@ function ReviewHistory({ reviews }) {
   )
 }
 
+// ─── 淘汰库区块 ───────────────────────────────────────────────
+const TYPE_LABEL = { action: '行动', law: '规律', mistake: '常犯错' }
+
+function RetiredSection({ onViewAll }) {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const reload = () => {
+    setLoading(true)
+    api.getRetiredItems({ page: 1, page_size: 5 }).then(res => {
+      setItems(res.list || [])
+      setLoading(false)
+    })
+  }
+
+  useEffect(reload, [])
+
+  const handleRestore = (item) => {
+    if (!window.confirm(`还原「${item.name}」？`)) return
+    api.restoreItem(item.type, item.id).then(reload).catch(e => alert(e.message))
+  }
+
+  const handleDelete = (item) => {
+    if (!window.confirm(`「${item.name}」将被彻底删除，此操作不可恢复。继续？`)) return
+    if (!window.confirm('再次确认：确定要永久删除吗？')) return
+    api.permanentDeleteItem(item.type, item.id).then(reload).catch(e => alert(e.message))
+  }
+
+  return (
+    <div className="review-section">
+      <div className="review-section-header-row">
+        <div className="review-section-title">淘汰库</div>
+        <button className="review-section-more" onClick={onViewAll}>查看全部 ›</button>
+      </div>
+      {loading ? (
+        <div className="review-section-sub">加载中...</div>
+      ) : items.length === 0 ? (
+        <div className="review-section-sub">暂无淘汰记录</div>
+      ) : (
+        <div className="retired-list">
+          {items.map(item => (
+            <div key={item.type + '-' + item.id} className="retired-card">
+              <div className="retired-info">
+                <div className="retired-type">{TYPE_LABEL[item.type] || item.type}</div>
+                <div className="retired-name">{item.name}</div>
+                {item.category_name && <div className="retired-cat">{item.category_name}</div>}
+              </div>
+              <div className="retired-actions">
+                <button className="restore-btn" onClick={() => handleRestore(item)}>还原</button>
+                <button className="delete-btn" onClick={() => handleDelete(item)}>永久删除</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── 淘汰库完整页 ─────────────────────────────────────────────
+function RetiredFullPage({ onClose }) {
+  const [activeTab, setActiveTab] = useState('all')
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const tabs = [
+    { key: 'all', label: '全部' },
+    { key: 'action', label: '行动' },
+    { key: 'law', label: '规律' },
+    { key: 'mistake', label: '常犯错' }
+  ]
+
+  const reload = () => {
+    setLoading(true)
+    const params = { page: 1, page_size: 100 }
+    if (activeTab !== 'all') params.type = activeTab
+    api.getRetiredItems(params).then(res => {
+      setItems(res.list || [])
+      setLoading(false)
+    })
+  }
+
+  useEffect(reload, [activeTab])
+
+  const handleRestore = (item) => {
+    if (!window.confirm(`还原「${item.name}」？`)) return
+    api.restoreItem(item.type, item.id).then(reload).catch(e => alert(e.message))
+  }
+
+  const handleDelete = (item) => {
+    if (!window.confirm(`「${item.name}」将被彻底删除，此操作不可恢复。继续？`)) return
+    if (!window.confirm('再次确认：确定要永久删除吗？')) return
+    api.permanentDeleteItem(item.type, item.id).then(reload).catch(e => alert(e.message))
+  }
+
+  const fmt = (d) => d ? new Date(d).toISOString().slice(0, 10) : ''
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div className="page-header-row">
+          <button className="exec-back" onClick={onClose}>←</button>
+          <h2>淘汰库</h2>
+        </div>
+      </div>
+      <div className="retired-tabs">
+        {tabs.map(t => (
+          <button
+            key={t.key}
+            className={`retired-tab ${activeTab === t.key ? 'active' : ''}`}
+            onClick={() => setActiveTab(t.key)}
+          >{t.label}</button>
+        ))}
+      </div>
+      <div className="page-body">
+        {loading ? (
+          <div className="review-section-sub">加载中...</div>
+        ) : items.length === 0 ? (
+          <div className="review-section-sub" style={{ textAlign: 'center', padding: 40 }}>暂无淘汰记录</div>
+        ) : (
+          <div className="retired-list">
+            {items.map(item => (
+              <div key={item.type + '-' + item.id} className="retired-card">
+                <div className="retired-info">
+                  <div className="retired-type">{TYPE_LABEL[item.type] || item.type}</div>
+                  <div className="retired-name">{item.name}</div>
+                  {item.category_name && <div className="retired-cat">{item.category_name}</div>}
+                  {item.retired_time && <div className="retired-time">淘汰于 {fmt(item.retired_time)}</div>}
+                </div>
+                <div className="retired-actions">
+                  <button className="restore-btn" onClick={() => handleRestore(item)}>还原</button>
+                  <button className="delete-btn" onClick={() => handleDelete(item)}>永久删除</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── 新建复盘弹窗 ────────────────────────────────────────────
 function ReviewCreateModal({ onClose, onCreate }) {
   const [cycle, setCycle] = useState('week')
+  const fmt = (d) => d.toISOString().slice(0, 10)
 
-  const getDateRange = () => {
+  const computeDefaultRange = (c) => {
     const now = new Date()
-    const end = now.toISOString().slice(0, 10)
-    const days = cycle === 'week' ? 7 : 30
-    const start = new Date(now - days * 86400000).toISOString().slice(0, 10)
+    const end = fmt(now)
+    if (c === 'day') return { start: end, end }
+    const days = c === 'week' ? 7 : c === 'month' ? 30 : 7
+    const start = fmt(new Date(now - days * 86400000))
     return { start, end }
   }
 
+  const [{ start, end }, setRange] = useState(() => computeDefaultRange('week'))
+
+  const handleCycleChange = (c) => {
+    setCycle(c)
+    setRange(computeDefaultRange(c))
+  }
+
   const handleCreate = () => {
-    const { start, end } = getDateRange()
+    if (cycle === 'custom' && new Date(start) > new Date(end)) {
+      alert('开始时间不能晚于结束时间')
+      return
+    }
     onCreate({ review_cycle: cycle, start_time: start, end_time: end })
   }
 
-  const { start, end } = getDateRange()
-
   return (
-    <div className="modal-mask" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
-        <div className="modal-title">新建复盘</div>
+    <div className="g-modal-mask" onClick={onClose}>
+      <div className="g-modal-box" onClick={e => e.stopPropagation()}>
+        <div className="g-modal-title">新建复盘</div>
         <div className="review-create-cycles">
-          <button className={`review-cycle-btn ${cycle === 'week' ? 'active' : ''}`} onClick={() => setCycle('week')}>周复盘</button>
-          <button className={`review-cycle-btn ${cycle === 'month' ? 'active' : ''}`} onClick={() => setCycle('month')}>月复盘</button>
+          <button className={`review-cycle-btn ${cycle === 'day' ? 'active' : ''}`} onClick={() => handleCycleChange('day')}>日复盘</button>
+          <button className={`review-cycle-btn ${cycle === 'week' ? 'active' : ''}`} onClick={() => handleCycleChange('week')}>周复盘</button>
+          <button className={`review-cycle-btn ${cycle === 'month' ? 'active' : ''}`} onClick={() => handleCycleChange('month')}>月复盘</button>
+          <button className={`review-cycle-btn ${cycle === 'custom' ? 'active' : ''}`} onClick={() => handleCycleChange('custom')}>自定义</button>
         </div>
-        <div className="review-create-range">复盘范围：{start} ~ {end}</div>
+        {cycle === 'custom' ? (
+          <div className="review-create-custom">
+            <label className="review-create-date-row">
+              <span>开始时间</span>
+              <input type="date" value={start} onChange={e => setRange(r => ({ ...r, start: e.target.value }))} />
+            </label>
+            <label className="review-create-date-row">
+              <span>结束时间</span>
+              <input type="date" value={end} onChange={e => setRange(r => ({ ...r, end: e.target.value }))} />
+            </label>
+          </div>
+        ) : (
+          <div className="review-create-range">复盘范围：{start} ~ {end}</div>
+        )}
         <div className="g-modal-actions">
           <button className="btn btn-outline" onClick={onClose}>取消</button>
           <button className="btn btn-primary" onClick={handleCreate}>开始复盘</button>
@@ -516,6 +687,7 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(true)
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [iterationData, setIterationData] = useState(null)
+  const [showRetiredFull, setShowRetiredFull] = useState(false)
 
   const loadData = () => {
     Promise.all([
@@ -550,6 +722,10 @@ export default function ReviewPage() {
     return <ReviewIterationPage reviewData={iterationData} onClose={() => setIterationData(null)} onDone={handleIterationDone} />
   }
 
+  if (showRetiredFull) {
+    return <RetiredFullPage onClose={() => setShowRetiredFull(false)} />
+  }
+
   if (loading) {
     return (
       <div className="page">
@@ -581,6 +757,7 @@ export default function ReviewPage() {
         {snapshots.length >= 2 && <RadarChart snapshots={snapshots} />}
         <EvolutionTree nodes={evolutionNodes} />
         <ReviewHistory reviews={reviews} />
+        <RetiredSection onViewAll={() => setShowRetiredFull(true)} />
       </div>
 
       <button className="fab" onClick={() => setShowCreateModal(true)}>+</button>

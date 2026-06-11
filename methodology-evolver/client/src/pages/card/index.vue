@@ -52,7 +52,8 @@
       <!-- 统一卡片 -->
       <view class="unified-card" v-for="item in displayList" :key="item._key" :style="{ borderLeftColor: item._borderColor }" @tap="onCardTap(item)" @longpress="onCardLongPress(item)">
         <view class="unified-card-row1">
-          <text class="unified-card-title">{{ item._title }}</text>
+          <text v-if="item._sensitiveId && isSensitiveHidden(item._sensitiveId)" class="sensitive-mask" @tap.stop="revealSensitive(item._sensitiveId)">点击查看</text>
+          <text v-else class="unified-card-title">{{ item._title }}</text>
           <text class="unified-card-badge" :class="item._badgeClass" v-if="item._badge">{{ item._badge }}</text>
         </view>
         <view class="unified-card-row2">
@@ -64,7 +65,7 @@
       </view>
 
       <view class="empty" v-if="!loading && displayList.length === 0">
-        <text class="empty-icon">{{ emptyIcon }}</text>
+        <view class="empty-icon"><app-icon :name="emptyIcon" :size="56" color="#9CA3AF" /></view>
         <text class="empty-text">{{ emptyText }}</text>
       </view>
     </scroll-view>
@@ -110,8 +111,12 @@
 
 <script>
 import api from '@/utils/api.js'
+import AppIcon from '@/components/icon.vue'
+import sensitiveMixin from '@/mixins/sensitive.js'
 
 export default {
+  components: { AppIcon },
+  mixins: [sensitiveMixin],
   data() {
     return {
       primaryTab: 'behavior',
@@ -154,9 +159,9 @@ export default {
       return opt ? opt[1] : this.sortOptions[0][1]
     },
     emptyIcon() {
-      if (this.primaryTab === 'behavior') return this.subTab === 'action' ? '📋' : '⛔'
-      if (this.primaryTab === 'law') return '💡'
-      return '💡'
+      if (this.primaryTab === 'behavior') return this.subTab === 'action' ? 'list' : 'ban'
+      if (this.primaryTab === 'law') return 'lightbulb'
+      return 'lightbulb'
     },
     emptyText() {
       if (this.primaryTab === 'behavior') return this.subTab === 'action' ? '暂无正确的事' : '暂无错误的事'
@@ -218,7 +223,9 @@ export default {
         list.sort((a, b) => new Date(b.created_time) - new Date(a.created_time))
         return list.map(i => ({
           ...i, _key: 'i_' + i.id, _title: i.desc,
-          _badge: null, _badgeClass: '',
+          _sensitiveId: 'insp-' + i.id,
+          _badge: i._direction_inferred ? '待确认方向' : (dir === 'positive' ? '正向' : '负向'),
+          _badgeClass: i._direction_inferred ? 'inferred' : (dir === 'positive' ? 'positive' : 'negative'),
           _meta: (this.getCategoryName(i.category_id) || '') + (i.source ? ` · 来源：${i.source}` : ''),
           _data: this.formatTime(i.created_time),
           _borderColor: dir === 'positive' ? '#FBBF24' : '#A78BFA', _type: 'inspiration'
@@ -231,6 +238,23 @@ export default {
   onLoad(options) {
     if (options.tab) this.primaryTab = options.tab
     this.fetchAll()
+  },
+
+  onShow() {
+    const pending = uni.getStorageSync('cardlib:pending-tab')
+    if (pending && pending.primaryTab) {
+      this.primaryTab = pending.primaryTab
+      if (pending.subTab) {
+        this.subTab = pending.subTab
+      } else if (pending.primaryTab === 'behavior') {
+        this.subTab = 'action'
+      } else if (pending.primaryTab === 'law') {
+        this.subTab = 'positive'
+      }
+      this.selectedCategory = null
+      this.selectedSort = 'weight'
+      uni.removeStorageSync('cardlib:pending-tab')
+    }
   },
 
   methods: {
@@ -248,7 +272,7 @@ export default {
     },
     getCategoryName(id) {
       const cat = this.categories.find(c => c.id === id)
-      return cat ? `${cat.icon || ''} ${cat.name}` : ''
+      return cat ? `${cat.icon || '◇'} ${cat.name}` : ''
     },
     getCategoryColor(id) {
       const cat = this.categories.find(c => c.id === id)
@@ -326,7 +350,24 @@ export default {
       this.showSheet = true
     },
     showInspirationActions(item) {
+      const flipDir = item.direction === 'positive' ? 'negative' : 'positive'
+      const flipLabel = item._direction_inferred
+        ? `确认为${item.direction === 'positive' ? '正向' : '负向'}灵感`
+        : `改为${flipDir === 'positive' ? '正向' : '负向'}灵感`
+      const onConfirm = async () => {
+        this.showSheet = false
+        await api.inspirations.update(item.id, { direction: item.direction, _direction_inferred: false })
+        uni.showToast({ title: '已确认', icon: 'success' })
+        this.fetchInspirations()
+      }
+      const onFlip = async () => {
+        this.showSheet = false
+        await api.inspirations.update(item.id, { direction: flipDir, _direction_inferred: false })
+        uni.showToast({ title: '已修改', icon: 'success' })
+        this.fetchInspirations()
+      }
       this.sheetActions = [
+        ...(item._direction_inferred ? [{ label: flipLabel, handler: onConfirm }, { label: `改为${flipDir === 'positive' ? '正向' : '负向'}灵感`, handler: onFlip }] : [{ label: flipLabel, handler: onFlip }]),
         { label: '转为正确的事', handler: async () => { this.showSheet = false; await api.inspirations.convert(item.id, { target_type: 'action' }); uni.showToast({ title: '已转化', icon: 'success' }); this.fetchInspirations() } },
         { label: '转为错误的事', handler: async () => { this.showSheet = false; await api.inspirations.convert(item.id, { target_type: 'mistake' }); uni.showToast({ title: '已转化', icon: 'success' }); this.fetchInspirations() } },
         { label: '转为规律', handler: async () => { this.showSheet = false; await api.inspirations.convert(item.id, { target_type: 'law' }); uni.showToast({ title: '已转化', icon: 'success' }); this.fetchInspirations() } },
@@ -416,21 +457,26 @@ export default {
   font-size: 26rpx;
   color: $text-light;
   text-align: center;
-  &.positive.active { background: rgba(54, 211, 153, 0.1); border-color: #36D399; color: #059669; font-weight: bold; }
-  &.negative.active { background: rgba(248, 114, 114, 0.1); border-color: #F87272; color: #DC2626; font-weight: bold; }
+  &.positive.active { background: rgba(54, 211, 153, 0.1); border-color: $positive-color; color: $positive-color; font-weight: bold; }
+  &.negative.active { background: rgba(248, 114, 114, 0.1); border-color: $negative-color; color: $negative-color; font-weight: bold; }
 }
 
 .filter-bar {
   display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   background-color: $card-bg;
   padding: 16rpx 24rpx;
   border-bottom: 1px solid $border-color;
+  -webkit-overflow-scrolling: touch;
 }
 .filter-item {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 24rpx;
+  height: 56rpx;
   font-size: 26rpx;
   color: $text-color;
   .arrow { margin-left: 8rpx; font-size: 20rpx; color: $text-light; }
@@ -471,6 +517,9 @@ export default {
   flex-shrink: 0;
   &.badge-pinned { color: $primary-color; background: rgba(22, 34, 56, 0.08); }
   &.badge-redline { color: #FF6B35; background: rgba(255, 107, 53, 0.1); }
+  &.positive { color: #B45309; background: rgba(251, 191, 36, 0.15); }
+  &.negative { color: #6D28D9; background: rgba(167, 139, 250, 0.15); }
+  &.inferred { color: #F59E0B; background: rgba(245, 158, 11, 0.15); border: 1rpx dashed #F59E0B; }
 }
 .unified-card-row2 {
   font-size: 24rpx;

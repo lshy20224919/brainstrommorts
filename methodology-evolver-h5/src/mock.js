@@ -559,11 +559,65 @@ export const api = {
   updateSettings: async (patch) => { await delay(); Object.assign(mockApi.settings, patch); persist(); return { ...mockApi.settings } },
 
   // 分类管理
-  addCategory: async (name) => { await delay(); const maxId = Math.max(...mockApi.categories.map(c => c.id), 0); const maxWeight = Math.max(...mockApi.categories.map(c => c.sort_weight), 0); const cat = { id: maxId + 1, name, icon: '📁', color: '#9CA3AF', sort_weight: maxWeight + 1, is_system_default: 0 }; mockApi.categories.push(cat); persist(); return cat },
+  addCategory: async (name) => { await delay(); const maxId = Math.max(...mockApi.categories.map(c => c.id), 0); const maxWeight = Math.max(...mockApi.categories.map(c => c.sort_weight), 0); const cat = { id: maxId + 1, name, icon: '◇', color: '#9CA3AF', sort_weight: maxWeight + 1, is_system_default: 0 }; mockApi.categories.push(cat); persist(); return cat },
   renameCategory: async (id, name) => { await delay(); const cat = mockApi.categories.find(c => c.id === id); if (!cat) throw new Error('分类不存在'); cat.name = name; persist(); return cat },
   removeCategory: async (id) => { await delay(); const idx = mockApi.categories.findIndex(c => c.id === id); if (idx === -1) throw new Error('分类不存在'); mockApi.categories.splice(idx, 1); persist(); return { success: true } },
   reorderCategory: async (id, direction) => { await delay(); const sorted = [...mockApi.categories].sort((a, b) => a.sort_weight - b.sort_weight); const idx = sorted.findIndex(c => c.id === id); if (idx === -1) return sorted; const swapIdx = direction === 'up' ? idx - 1 : idx + 1; if (swapIdx < 0 || swapIdx >= sorted.length) return sorted; const tmp = sorted[idx].sort_weight; sorted[idx].sort_weight = sorted[swapIdx].sort_weight; sorted[swapIdx].sort_weight = tmp; persist(); return sorted.sort((a, b) => a.sort_weight - b.sort_weight) },
 
   // 重置
-  resetAllData: () => { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(POPUP_LOG_KEY); window.location.reload() }
+  resetAllData: () => { localStorage.removeItem(STORAGE_KEY); localStorage.removeItem(POPUP_LOG_KEY); window.location.reload() },
+
+  // 淘汰库
+  getRetiredItems: async (params = {}) => {
+    await delay()
+    const { type, page = 1, page_size = 20 } = params
+    const all = []
+    if (!type || type === 'action') {
+      for (const a of mockApi.actions.filter(x => x.status === 2)) {
+        const cat = mockApi.categories.find(c => c.id === a.category_id)
+        all.push({ type: 'action', id: a.id, name: a.name, category_name: cat?.name || '', retired_time: a.retired_time || a.updated_time || a.created_time })
+      }
+    }
+    if (!type || type === 'mistake') {
+      for (const m of mockApi.mistakes.filter(x => x.status === 2)) {
+        const cat = mockApi.categories.find(c => c.id === m.category_id)
+        all.push({ type: 'mistake', id: m.id, name: m.name, category_name: cat?.name || '', retired_time: m.retired_time || m.updated_time || m.created_time })
+      }
+    }
+    if (!type || type === 'law') {
+      for (const l of mockApi.laws.filter(x => x.status === 2)) {
+        const cat = mockApi.categories.find(c => c.id === l.category_id)
+        all.push({ type: 'law', id: l.id, name: l.law_desc, category_name: cat?.name || '', retired_time: l.retired_time || l.updated_time || l.created_time })
+      }
+    }
+    all.sort((a, b) => new Date(b.retired_time || 0) - new Date(a.retired_time || 0))
+    const start = (page - 1) * page_size
+    return { list: all.slice(start, start + page_size), total: all.length }
+  },
+
+  restoreItem: async (type, id) => {
+    await delay()
+    const list = type === 'action' ? mockApi.actions : type === 'law' ? mockApi.laws : mockApi.mistakes
+    const item = list.find(x => x.id === id)
+    if (!item) throw new Error('记录不存在')
+    if (item.status !== 2) throw new Error('该记录未被淘汰')
+    item.status = 0
+    persist()
+    return { success: true }
+  },
+
+  permanentDeleteItem: async (type, id) => {
+    await delay()
+    const list = type === 'action' ? mockApi.actions : type === 'law' ? mockApi.laws : mockApi.mistakes
+    const idx = list.findIndex(x => x.id === id)
+    if (idx === -1) throw new Error('记录不存在')
+    list.splice(idx, 1)
+    if (type === 'action') {
+      for (let i = mockApi.records.length - 1; i >= 0; i--) {
+        if (mockApi.records[i].action_id === id) mockApi.records.splice(i, 1)
+      }
+    }
+    persist()
+    return { success: true }
+  }
 }

@@ -5,26 +5,65 @@
 </template>
 
 <script>
+import { mockDB } from './src/utils/mock.js'
+import migrations from './src/utils/migrations.js'
+import { getLockEnabled } from './src/utils/privacy.js'
+
 export default {
+  globalData: {
+    unlocked: false
+  },
   computed: {
     isDarkMode() {
       return this.$store.state.isDarkMode
     }
   },
   onLaunch() {
+    // 跑数据迁移（直方向回填等）
+    try { migrations.run(mockDB) } catch (e) { console.error('migrations failed', e) }
     // 检查主题模式
     this.checkTheme()
     // 检查登录状态
     this.checkLogin()
+    // 锁屏拦截：本地软隐私
+    this.checkLock()
   },
   methods: {
     checkTheme() {
-      const darkMode = uni.getStorageSync('darkMode') || 0
-      this.$store.commit('SET_DARK_MODE', darkMode === 2 ? this.getSystemTheme() : darkMode === 1)
+      // 新 key: 'theme' (light|dark|auto)；老 key 'darkMode' 兼容回填
+      let theme = uni.getStorageSync('theme')
+      if (!theme) {
+        const old = uni.getStorageSync('darkMode')
+        if (old === 1) theme = 'dark'
+        else if (old === 2) theme = 'auto'
+        else theme = 'light'
+        uni.setStorageSync('theme', theme)
+      }
+      this.applyTheme(theme)
+      // auto 模式下监听系统主题切换
+      if (theme === 'auto' && uni.onThemeChange) {
+        uni.onThemeChange(({ theme: sys }) => {
+          if (uni.getStorageSync('theme') === 'auto') {
+            this.$store.commit('SET_DARK_MODE', sys === 'dark')
+          }
+        })
+      }
+    },
+    applyTheme(theme) {
+      const isDark = theme === 'dark' || (theme === 'auto' && this.getSystemTheme())
+      this.$store.commit('SET_DARK_MODE', isDark)
+      try {
+        uni.setNavigationBarColor({
+          frontColor: isDark ? '#ffffff' : '#000000',
+          backgroundColor: isDark ? '#1a1a1a' : '#ffffff'
+        })
+      } catch (e) {}
     },
     getSystemTheme() {
-      const sysInfo = uni.getSystemInfoSync()
-      return sysInfo.theme === 'dark'
+      try {
+        const sysInfo = uni.getSystemInfoSync()
+        return sysInfo.theme === 'dark'
+      } catch (e) { return false }
     },
     async checkLogin() {
       const token = uni.getStorageSync('token')
@@ -38,6 +77,11 @@ export default {
           // token无效，清除
           uni.removeStorageSync('token')
         }
+      }
+    },
+    checkLock() {
+      if (getLockEnabled() && !this.$options.globalData.unlocked) {
+        uni.reLaunch({ url: '/pages/lock/index' })
       }
     }
   }
@@ -152,20 +196,30 @@ view, text, scroll-view {
     background-color: $dark-bg-color;
     color: $dark-text-color;
   }
-  
+
   .card {
     background-color: $dark-card-bg;
   }
-  
+
   .btn-outline {
     border-color: $dark-border-color;
     color: $dark-text-color;
   }
-  
+
   .input {
     background-color: $dark-bg-color;
     border-color: $dark-border-color;
     color: $dark-text-color;
   }
+}
+
+/* 敏感内容遮罩 */
+.sensitive-mask {
+  display: inline-block;
+  background-color: rgba(120, 120, 120, 0.18);
+  color: $text-light;
+  border-radius: 8rpx;
+  padding: 4rpx 20rpx;
+  font-size: 24rpx;
 }
 </style>

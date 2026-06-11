@@ -1,131 +1,99 @@
 <template>
   <view class="page-index">
+    <!-- 模块零：进化旅程 + 智能建议 -->
+    <evolution-journey :stages="stages" />
+    <smart-suggestion :suggestion="suggestion" @action="onSuggestionAction" />
 
-    <!-- 数据看板：四列 -->
+    <!-- 模块一：数据看板 -->
     <view class="stats-board">
-      <view class="stats-board-item">
+      <view class="stats-board-item" @tap="goToCardLib('behavior', 'action')">
         <text class="stats-board-label">正确的事</text>
         <text class="stats-board-value">{{ stats.action_count || 0 }}</text>
         <text class="stats-board-sub">触发 {{ stats.action_trigger_count || 0 }} 次</text>
       </view>
-      <view class="stats-board-item">
+      <view class="stats-board-item" @tap="goToCardLib('behavior', 'mistake')">
         <text class="stats-board-label">错误的事</text>
         <text class="stats-board-value negative">{{ stats.mistake_count || 0 }}</text>
         <text class="stats-board-sub">红线 {{ stats.mistake_count || 0 }} 条</text>
       </view>
-      <view class="stats-board-item">
+      <view class="stats-board-item" @tap="goToCardLib('law', 'positive')">
         <text class="stats-board-label">正向规律</text>
         <text class="stats-board-value">{{ stats.positive_law_count || 0 }}</text>
         <text class="stats-board-sub">触发 {{ stats.positive_law_trigger_count || 0 }} 次</text>
       </view>
-      <view class="stats-board-item">
+      <view class="stats-board-item" @tap="goToCardLib('law', 'negative')">
         <text class="stats-board-label">负向规律</text>
         <text class="stats-board-value negative">{{ stats.negative_law_count || 0 }}</text>
         <text class="stats-board-sub">触发 {{ stats.negative_law_trigger_count || 0 }} 次</text>
       </view>
     </view>
 
-    <!-- 快捷操作区：两行三列 -->
+    <!-- 模块二：快捷操作 -->
     <view class="quick-actions">
       <view class="quick-btn" @tap="goToPage('/pages/card/create?type=action')">
-        <text class="quick-icon">➕</text>
+        <view class="quick-icon"><app-icon name="plus" :size="32" color="#162238" /></view>
         <text class="quick-text">正确的事</text>
       </view>
       <view class="quick-btn" @tap="goToPage('/pages/mistake/create')">
-        <text class="quick-icon">🚫</text>
+        <view class="quick-icon"><app-icon name="ban" :size="32" color="#F87272" /></view>
         <text class="quick-text">错误的事</text>
       </view>
       <view class="quick-btn" @tap="showCheckin">
-        <text class="quick-icon">✅</text>
+        <view class="quick-icon"><app-icon name="check" :size="32" color="#36D399" /></view>
         <text class="quick-text">打卡</text>
       </view>
       <view class="quick-btn" @tap="goToPage('/pages/law/create?type=positive')">
-        <text class="quick-icon">📈</text>
+        <view class="quick-icon"><app-icon name="trendUp" :size="32" color="#36D399" /></view>
         <text class="quick-text">正向规律</text>
       </view>
       <view class="quick-btn" @tap="goToPage('/pages/law/create?type=negative')">
-        <text class="quick-icon">📉</text>
+        <view class="quick-icon"><app-icon name="trendDown" :size="32" color="#F87272" /></view>
         <text class="quick-text">负向规律</text>
       </view>
       <view class="quick-btn" @tap="goToPage('/pages/inspiration/create')">
-        <text class="quick-icon">💡</text>
+        <view class="quick-icon"><app-icon name="lightbulb" :size="32" color="#F5A623" /></view>
         <text class="quick-text">灵感捕捉</text>
       </view>
     </view>
 
-    <!-- 待办提醒区：每种独立一张卡片，可手动清除 -->
-    <view class="todo-section" v-if="todos.length > 0">
+    <!-- 模块三：待办提醒（含草稿折叠） -->
+    <view class="todo-section" v-if="mergedTodos.length > 0">
       <view
         class="todo-card"
-        v-for="todo in todos"
+        v-for="todo in mergedTodos"
         :key="todo.key"
+        :data-type="todo.type"
       >
         <view class="todo-content" @tap="onTodoTap(todo)">
-          <text v-if="todo.type === 'review'">📊 您有 <text class="todo-strong">{{ todo.count }}</text> 个正确的事待复盘</text>
-          <text v-if="todo.type === 'migrate'">💡 今日有 <text class="todo-strong">{{ todo.count }}</text> 条迁移推荐</text>
-          <text v-if="todo.type === 'overdue'">⏰ <text class="todo-strong">{{ todo.action_name }}</text> 已 {{ todo.days }} 天未执行</text>
+          <view class="todo-line" v-if="todo.type === 'draft'">
+            <app-icon name="alert" :size="20" color="#F5A623" />
+            <text>您有 <text class="todo-strong">{{ todo.count }}</text> 条未完成录入（{{ draftLabels(todo.drafts) }}）</text>
+            <text class="todo-action">继续填写 →</text>
+          </view>
+          <view class="todo-line" v-if="todo.type === 'review'">
+            <app-icon name="chart" :size="20" color="#162238" />
+            <text>您有 <text class="todo-strong">{{ todo.count }}</text> 个正确的事待复盘</text>
+          </view>
+          <view class="todo-line" v-if="todo.type === 'migrate'">
+            <app-icon name="lightbulb" :size="20" color="#F5A623" />
+            <text>今日有 <text class="todo-strong">{{ todo.count }}</text> 条迁移推荐</text>
+          </view>
+          <view class="todo-line" v-if="todo.type === 'overdue'">
+            <app-icon name="clock" :size="20" color="#F87272" />
+            <text><text class="todo-strong">{{ todo.action_name }}</text> 已 {{ todo.days }} 天未执行</text>
+          </view>
         </view>
-        <view class="todo-dismiss" @tap="dismissTodo(todo.key)">×</view>
+        <view class="todo-dismiss" @tap.stop="onTodoDismiss(todo)">×</view>
       </view>
     </view>
 
-    <!-- 榜单区：左右滑动，三个榜单 -->
-    <view class="rank-section">
-      <view class="rank-header">
-        <text class="section-title">我的榜单</text>
-        <view class="rank-config-btn" @tap="showRankConfig = true">自定义</view>
-      </view>
+    <!-- 模块四：榜单 -->
+    <rank-section :categories="categories" />
 
-      <!-- 指示点 -->
-      <view class="rank-dots">
-        <view
-          v-for="(tab, i) in rankTabs"
-          :key="tab.key"
-          class="rank-dot"
-          :class="{ active: rankIndex === i }"
-          @tap="rankIndex = i"
-        />
-      </view>
-
-      <!-- 榜单标题 -->
-      <text class="rank-tab-label">{{ rankTabs[rankIndex].label }}</text>
-
-      <!-- 榜单列表（通过 swiper 实现左右滑动） -->
-      <swiper :current="rankIndex" @change="onRankSwipe" class="rank-swiper">
-        <swiper-item v-for="tab in rankTabs" :key="tab.key">
-          <view class="rank-list" v-if="rankings[tab.key] && rankings[tab.key].length > 0">
-            <view
-              class="rank-item"
-              v-for="(item, index) in rankings[tab.key]"
-              :key="item.id"
-            >
-              <view class="rank-num" :class="{ top3: index < 3 }">{{ index + 1 }}</view>
-              <view class="rank-info">
-                <text class="rank-name">{{ tab.key === 'action' ? item.action_name : (tab.key === 'mistake' ? item.name : item.law_desc) }}</text>
-                <text class="rank-category">{{ item.category_name || item.category }}</text>
-              </view>
-              <view class="rank-stats">
-                <text class="rank-count" v-if="tab.key === 'action'">{{ item.exec_count }} 次</text>
-                <text class="rank-rate" :class="{ high: item.success_rate >= 60 }" v-if="tab.key === 'action'">
-                  {{ item.success_rate != null ? item.success_rate + '%' : '暂无' }}
-                </text>
-                <text class="rank-count" v-if="tab.key === 'mistake'">权重 {{ item.subjective_weight }}</text>
-                <text class="rank-count" v-if="tab.key !== 'action' && tab.key !== 'mistake'">触发 {{ item.trigger_count }} 次</text>
-              </view>
-            </view>
-          </view>
-          <view class="rank-empty" v-else>
-            <text>暂无数据</text>
-          </view>
-        </swiper-item>
-      </swiper>
-    </view>
-
-    <!-- 打卡弹窗 -->
+    <!-- 打卡弹窗（保留） -->
     <view class="modal-mask" v-if="showCheckinModal" @tap.stop="closeCheckin">
       <view class="modal-box" @tap.stop>
         <text class="modal-title">打卡</text>
-
         <view class="form-group">
           <text class="form-label">选择正确的事 *</text>
           <picker mode="selector" :range="actionsList" range-key="action_name" @change="onActionSelect">
@@ -135,179 +103,144 @@
             </view>
           </picker>
         </view>
-
         <view class="form-group">
           <text class="form-label">执行结果 *</text>
           <view class="checkin-result-btns">
-            <view
-              class="checkin-result-btn success"
-              :class="{ active: checkinResult === 1 }"
-              @tap="checkinResult = 1"
-            >✅ 成功</view>
-            <view
-              class="checkin-result-btn fail"
-              :class="{ active: checkinResult === 2 }"
-              @tap="checkinResult = 2"
-            >❌ 失败</view>
+            <view class="checkin-result-btn success" :class="{ active: checkinResult === 1 }" @tap="checkinResult = 1">
+              <app-icon name="check" :size="20" :color="checkinResult === 1 ? '#36D399' : '#9CA3AF'" />
+              <text class="result-label">成功</text>
+            </view>
+            <view class="checkin-result-btn fail" :class="{ active: checkinResult === 2 }" @tap="checkinResult = 2">
+              <app-icon name="x" :size="20" :color="checkinResult === 2 ? '#F87272' : '#9CA3AF'" />
+              <text class="result-label">失败</text>
+            </view>
           </view>
         </view>
-
         <view class="form-group">
           <text class="form-label">备注（选填）</text>
           <input class="form-input" v-model="checkinRemark" placeholder="最多200字" maxlength="200" />
         </view>
-
         <view class="modal-actions">
           <view class="btn btn-outline" @tap="closeCheckin">取消</view>
-          <view
-            class="btn btn-primary"
-            :class="{ disabled: !selectedAction || !checkinResult }"
-            @tap="submitCheckin"
-          >确认打卡</view>
+          <view class="btn btn-primary" :class="{ disabled: !selectedAction || !checkinResult }" @tap="submitCheckin">确认打卡</view>
         </view>
       </view>
     </view>
 
-    <!-- 自定义榜单数量弹窗 -->
-    <view class="modal-mask" v-if="showRankConfig" @tap.stop="showRankConfig = false">
-      <view class="modal-box" @tap.stop>
-        <text class="modal-title">自定义榜单显示数量</text>
-        <view class="form-group" v-for="tab in rankTabs" :key="tab.key">
-          <text class="form-label">{{ tab.label }}</text>
-          <input class="form-input" type="number" v-model="rankConfigDraft[tab.key]" />
-        </view>
-        <view class="modal-actions">
-          <view class="btn btn-outline" @tap="showRankConfig = false">取消</view>
-          <view class="btn btn-primary" @tap="saveRankConfig">确认</view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 加载状态 -->
-    <view class="loading" v-if="loading">
-      <text>加载中...</text>
-    </view>
+    <view class="loading" v-if="loading"><text>加载中...</text></view>
   </view>
 </template>
 
 <script>
 import api from '@/utils/api.js'
-
-const RANK_TABS = [
-  { key: 'action', label: '正确的事' },
-  { key: 'mistake', label: '错误的事' },
-  { key: 'positive_law', label: '正向规律' },
-  { key: 'negative_law', label: '负向规律' }
-]
+import negativeWarning from '@/mixins/negativeWarning.js'
+import AppIcon from '@/components/icon.vue'
+import EvolutionJourney from '@/components/EvolutionJourney.vue'
+import SmartSuggestion from '@/components/SmartSuggestion.vue'
+import RankSection from '@/components/RankSection.vue'
+import { buildDraftTodo, clearDrafts } from '@/utils/drafts.js'
 
 export default {
+  mixins: [negativeWarning],
+  components: { AppIcon, EvolutionJourney, SmartSuggestion, RankSection },
   data() {
     return {
       loading: false,
       stats: {},
       todos: [],
+      draftTodo: null,
+      stages: [],
+      suggestion: null,
+      categories: [],
       actionsList: [],
-      rankings: { action: [], mistake: [], positive_law: [], negative_law: [] },
-      rankTabs: RANK_TABS,
-      rankIndex: 0,
-      rankConfig: { action: 5, mistake: 3, positive_law: 3, negative_law: 3 },
-      rankConfigDraft: {},
       showCheckinModal: false,
-      showRankConfig: false,
       selectedAction: null,
       checkinResult: null,
       checkinRemark: ''
     }
   },
-
-  onLoad() {
-    this.initData()
+  computed: {
+    mergedTodos() {
+      return this.draftTodo ? [this.draftTodo, ...this.todos] : this.todos
+    }
   },
-
-  onShow() {
-    this.fetchPageData()
-  },
-
+  onLoad() { this.initData() },
+  onShow() { this.fetchPageData() },
   onPullDownRefresh() {
     this.fetchPageData()
     uni.stopPullDownRefresh()
   },
-
   methods: {
     async initData() {
       try {
-        const res = await api.actions.list({ status: 0, page_size: 100 })
-        this.actionsList = res.data.list || []
+        const [actionsRes, catsRes] = await Promise.all([
+          api.actions.list({ status: 0, page_size: 100 }),
+          api.categories.list()
+        ])
+        this.actionsList = actionsRes.data.list || actionsRes.data || []
+        this.categories = catsRes.data || []
       } catch (e) {
-        console.error('获取正确的事列表失败', e)
+        console.error('初始化失败', e)
       }
     },
-
     async fetchPageData() {
       this.loading = true
       try {
-        const [statsRes, todosRes] = await Promise.all([
+        const [statsRes, todosRes, stagesRes, sugRes] = await Promise.all([
           api.stats.dashboard(),
-          api.stats.todos()
+          api.stats.todos(),
+          api.evolution.progress(),
+          api.suggestions.smart()
         ])
         this.stats = statsRes.data || {}
         this.todos = todosRes.data || []
-        await this.fetchRankings()
+        this.stages = stagesRes.data || []
+        this.suggestion = sugRes.data || null
+        this.draftTodo = buildDraftTodo()
       } catch (e) {
         console.error('获取首页数据失败', e)
       } finally {
         this.loading = false
       }
     },
-
-    async fetchRankings() {
-      try {
-        const [actionRank, mistakeRank, positiveLawRank, negativeLawRank] = await Promise.all([
-          api.stats.ranking({ type: 'action', limit: this.rankConfig.action }),
-          api.stats.ranking({ type: 'mistake', limit: this.rankConfig.mistake }),
-          api.stats.ranking({ type: 'positive_law', limit: this.rankConfig.positive_law }),
-          api.stats.ranking({ type: 'negative_law', limit: this.rankConfig.negative_law })
-        ])
-        this.rankings = {
-          action: actionRank.data || [],
-          mistake: mistakeRank.data || [],
-          positive_law: positiveLawRank.data || [],
-          negative_law: negativeLawRank.data || []
-        }
-      } catch (e) {
-        console.error('获取榜单失败', e)
-      }
+    draftLabels(drafts) {
+      return (drafts || []).map(d => d.label).join('、')
     },
-
-    onRankSwipe(e) {
-      this.rankIndex = e.detail.current
-    },
-
-    async dismissTodo(key) {
-      try {
-        await api.stats.dismissTodo({ key })
-        this.todos = this.todos.filter(t => t.key !== key)
-      } catch (e) {
-        console.error('清除待办失败', e)
-      }
-    },
-
     onTodoTap(todo) {
-      if (todo.type === 'review') uni.switchTab({ url: '/pages/review/index' })
-      else if (todo.type === 'migrate') uni.switchTab({ url: '/pages/card/index' })
-      else if (todo.type === 'overdue') uni.navigateTo({ url: `/pages/card/detail?id=${todo.action_id}` })
+      if (todo.type === 'draft') {
+        const first = (todo.drafts || [])[0]
+        if (first && first.route) uni.navigateTo({ url: first.route })
+      } else if (todo.type === 'review') {
+        uni.switchTab({ url: '/pages/review/index' })
+      } else if (todo.type === 'migrate') {
+        uni.switchTab({ url: '/pages/card/index' })
+      } else if (todo.type === 'overdue') {
+        uni.navigateTo({ url: `/pages/card/detail?id=${todo.action_id}` })
+      }
     },
-
-    saveRankConfig() {
-      this.rankConfig = { ...this.rankConfigDraft }
-      this.showRankConfig = false
-      this.fetchRankings()
+    async onTodoDismiss(todo) {
+      if (todo.type === 'draft') {
+        clearDrafts()
+        this.draftTodo = null
+        return
+      }
+      try {
+        await api.stats.dismissTodo({ key: todo.key })
+        this.todos = this.todos.filter(t => t.key !== todo.key)
+      } catch (e) { console.error('清除待办失败', e) }
     },
-
-    goToPage(url) {
-      uni.navigateTo({ url })
+    onSuggestionAction(action) {
+      if (action === 'create_action') uni.navigateTo({ url: '/pages/card/create?type=action' })
+      else if (action === 'checkin') this.showCheckin()
+      else if (action === 'create_law') uni.navigateTo({ url: '/pages/law/create?type=positive' })
+      else if (action === 'go_sop') uni.switchTab({ url: '/pages/sop/index' })
+      else if (action === 'go_review') uni.switchTab({ url: '/pages/review/index' })
     },
-
+    goToPage(url) { uni.navigateTo({ url }) },
+    goToCardLib(primaryTab, subTab) {
+      uni.setStorageSync('cardlib:pending-tab', { primaryTab, subTab: subTab || null, ts: Date.now() })
+      uni.switchTab({ url: '/pages/card/index' })
+    },
     showCheckin() {
       if (this.actionsList.length === 0) {
         uni.showToast({ title: '请先创建正确的事', icon: 'none' })
@@ -318,20 +251,16 @@ export default {
       this.checkinResult = null
       this.checkinRemark = ''
     },
-
-    closeCheckin() {
-      this.showCheckinModal = false
-    },
-
-    onActionSelect(e) {
-      this.selectedAction = this.actionsList[e.detail.value]
-    },
-
+    closeCheckin() { this.showCheckinModal = false },
+    onActionSelect(e) { this.selectedAction = this.actionsList[e.detail.value] },
     async submitCheckin() {
       if (!this.selectedAction || !this.checkinResult) {
         uni.showToast({ title: '请选择正确的事和结果', icon: 'none' })
         return
       }
+      this.checkNegativeWarning(this.selectedAction.category_id, () => this.doCheckin())
+    },
+    async doCheckin() {
       try {
         await api.actions.checkin(this.selectedAction.action_id, {
           exec_result: this.checkinResult,
@@ -340,9 +269,7 @@ export default {
         uni.showToast({ title: '打卡成功', icon: 'success' })
         this.closeCheckin()
         this.fetchPageData()
-      } catch (e) {
-        console.error('打卡失败', e)
-      }
+      } catch (e) { console.error('打卡失败', e) }
     }
   }
 }
@@ -365,7 +292,6 @@ export default {
   gap: 20rpx;
   margin-bottom: 30rpx;
 }
-
 .stats-board-item {
   background-color: $card-bg;
   border-radius: 12rpx;
@@ -373,14 +299,7 @@ export default {
   text-align: center;
   box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.06);
 }
-
-.stats-board-label {
-  display: block;
-  font-size: 22rpx;
-  color: $text-light;
-  margin-bottom: 8rpx;
-}
-
+.stats-board-label { display: block; font-size: 22rpx; color: $text-light; margin-bottom: 8rpx; }
 .stats-board-value {
   display: block;
   font-size: 48rpx;
@@ -388,17 +307,9 @@ export default {
   color: $text-color;
   line-height: 1;
   margin-bottom: 8rpx;
-
-  &.negative {
-    color: $danger-color;
-  }
+  &.negative { color: $danger-color; }
 }
-
-.stats-board-sub {
-  display: block;
-  font-size: 20rpx;
-  color: $text-light;
-}
+.stats-board-sub { display: block; font-size: 20rpx; color: $text-light; }
 
 /* 快捷操作区 */
 .quick-actions {
@@ -407,25 +318,14 @@ export default {
   gap: 12rpx;
   margin-bottom: 30rpx;
 }
-
 .quick-btn {
   background-color: $card-bg;
   border-radius: 12rpx;
   padding: 24rpx 8rpx;
   text-align: center;
   box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.06);
-
-  .quick-icon {
-    display: block;
-    font-size: 40rpx;
-    margin-bottom: 8rpx;
-  }
-
-  .quick-text {
-    font-size: 20rpx;
-    color: $text-color;
-    line-height: 1.3;
-  }
+  .quick-icon { display: block; font-size: 40rpx; margin-bottom: 8rpx; }
+  .quick-text { font-size: 20rpx; color: $text-color; line-height: 1.3; }
 }
 
 /* 待办提醒区 */
@@ -435,7 +335,6 @@ export default {
   gap: 16rpx;
   margin-bottom: 30rpx;
 }
-
 .todo-card {
   display: flex;
   align-items: center;
@@ -443,181 +342,24 @@ export default {
   border-radius: 12rpx;
   padding: 24rpx;
   box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.06);
+  border-left: 6rpx solid $danger-color;
 }
-
-.todo-content {
-  flex: 1;
-  font-size: 28rpx;
-  color: $text-color;
-}
-
-.todo-strong {
-  color: $primary-color;
-  font-weight: bold;
-}
-
-.todo-dismiss {
-  font-size: 36rpx;
-  color: $text-light;
-  padding-left: 20rpx;
-}
-
-/* 榜单区 */
-.rank-section {
-  background-color: $card-bg;
-  border-radius: 12rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.06);
-}
-
-.rank-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20rpx;
-}
-
-.section-title {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: $text-color;
-}
-
-.rank-config-btn {
-  font-size: 24rpx;
-  color: $primary-color;
-  border: 1rpx solid $primary-color;
-  border-radius: 8rpx;
-  padding: 6rpx 16rpx;
-}
-
-.rank-dots {
-  display: flex;
-  justify-content: center;
-  gap: 12rpx;
-  margin-bottom: 16rpx;
-}
-
-.rank-dot {
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background-color: $border-color;
-
-  &.active {
-    background-color: $primary-color;
-  }
-}
-
-.rank-tab-label {
-  display: block;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: $primary-color;
-  text-align: center;
-  margin-bottom: 20rpx;
-}
-
-.rank-swiper {
-  height: 400rpx;
-}
-
-.rank-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.rank-item {
-  display: flex;
-  align-items: center;
-  padding: 20rpx 0;
-  border-bottom: 1rpx solid $border-color;
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.rank-num {
-  width: 44rpx;
-  height: 44rpx;
-  border-radius: 22rpx;
-  background-color: $bg-color;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24rpx;
-  color: $text-light;
-  margin-right: 20rpx;
-  flex-shrink: 0;
-
-  &.top3 {
-    background-color: $primary-color;
-    color: #ffffff;
-  }
-}
-
-.rank-info {
-  flex: 1;
-  min-width: 0;
-
-  .rank-name {
-    display: block;
-    font-size: 28rpx;
-    color: $text-color;
-    font-weight: 500;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .rank-category {
-    font-size: 22rpx;
-    color: $text-light;
-  }
-}
-
-.rank-stats {
-  text-align: right;
-  flex-shrink: 0;
-
-  .rank-count {
-    display: block;
-    font-size: 22rpx;
-    color: $text-light;
-  }
-
-  .rank-rate {
-    font-size: 28rpx;
-    font-weight: bold;
-    color: $text-light;
-
-    &.high {
-      color: $success-color;
-    }
-  }
-}
-
-.rank-empty {
-  text-align: center;
-  padding: 60rpx 0;
-  font-size: 28rpx;
-  color: $text-light;
-}
+.todo-card[data-type="draft"] { border-left-color: $accent-color; }
+.todo-content { flex: 1; font-size: 28rpx; color: $text-color; }
+.todo-line { display: flex; align-items: center; gap: 12rpx; flex-wrap: wrap; }
+.todo-strong { color: $primary-color; font-weight: bold; }
+.todo-action { font-size: 22rpx; color: $accent-color; font-weight: 600; margin-left: 8rpx; }
+.todo-dismiss { font-size: 36rpx; color: $text-light; padding-left: 20rpx; }
 
 /* 弹窗 */
 .modal-mask {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: 0; left: 0; right: 0; bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: flex-end;
   z-index: 999;
 }
-
 .modal-box {
   width: 100%;
   background-color: $card-bg;
@@ -626,7 +368,6 @@ export default {
   max-height: 90vh;
   overflow-y: auto;
 }
-
 .modal-title {
   display: block;
   font-size: 36rpx;
@@ -635,109 +376,43 @@ export default {
   text-align: center;
   margin-bottom: 40rpx;
 }
-
-/* 表单 */
-.form-group {
-  margin-bottom: 30rpx;
-}
-
-.form-label {
-  display: block;
-  font-size: 26rpx;
-  color: $text-light;
-  margin-bottom: 12rpx;
-}
-
+.form-group { margin-bottom: 30rpx; }
+.form-label { display: block; font-size: 26rpx; color: $text-light; margin-bottom: 12rpx; }
 .form-input {
-  width: 100%;
-  padding: 20rpx 24rpx;
-  background-color: $bg-color;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: $text-color;
+  width: 100%; padding: 20rpx 24rpx;
+  background-color: $bg-color; border-radius: 12rpx;
+  font-size: 28rpx; color: $text-color;
 }
-
 .picker-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: flex; justify-content: space-between; align-items: center;
   padding: 20rpx 24rpx;
-  background-color: $bg-color;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  color: $text-color;
-
-  .picker-arrow {
-    color: $text-light;
-    font-size: 24rpx;
-  }
+  background-color: $bg-color; border-radius: 12rpx;
+  font-size: 28rpx; color: $text-color;
+  .picker-arrow { color: $text-light; font-size: 24rpx; }
 }
-
-/* 打卡结果按钮 */
-.checkin-result-btns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-}
-
+.checkin-result-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 20rpx; }
 .checkin-result-btn {
-  padding: 30rpx;
-  border-radius: 12rpx;
-  background-color: $bg-color;
-  text-align: center;
-  font-size: 30rpx;
-  font-weight: 600;
-  color: $text-light;
+  padding: 30rpx; border-radius: 12rpx;
+  background-color: $bg-color; text-align: center;
+  font-size: 30rpx; font-weight: 600; color: $text-light;
   border: 2rpx solid transparent;
-
+  display: flex; align-items: center; justify-content: center; gap: 12rpx;
+  .result-label { font-size: 30rpx; }
   &.success.active {
     border-color: $success-color;
     background-color: rgba(54, 211, 153, 0.1);
     color: $success-color;
   }
-
   &.fail.active {
     border-color: $danger-color;
     background-color: rgba(248, 114, 114, 0.1);
     color: $danger-color;
   }
 }
-
-/* 弹窗操作按钮 */
-.modal-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20rpx;
-  margin-top: 40rpx;
-}
-
-.btn {
-  padding: 28rpx;
-  border-radius: 40rpx;
-  text-align: center;
-  font-size: 30rpx;
-  font-weight: 600;
-}
-
-.btn-outline {
-  border: 1rpx solid $border-color;
-  color: $text-color;
-}
-
-.btn-primary {
-  background-color: $primary-color;
-  color: #ffffff;
-
-  &.disabled {
-    opacity: 0.5;
-  }
-}
-
-/* 加载 */
-.loading {
-  text-align: center;
-  padding: 40rpx;
-  color: $text-light;
-  font-size: 28rpx;
-}
+.modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 20rpx; margin-top: 40rpx; }
+.btn { padding: 28rpx; border-radius: 40rpx; text-align: center; font-size: 30rpx; font-weight: 600; }
+.btn-outline { border: 1rpx solid $border-color; color: $text-color; }
+.btn-primary { background-color: $primary-color; color: #ffffff; &.disabled { opacity: 0.5; } }
+.loading { text-align: center; padding: 40rpx; color: $text-light; font-size: 28rpx; }
 </style>
+

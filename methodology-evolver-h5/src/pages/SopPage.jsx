@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import { Pencil, Copy, Trash2, Check, X, Pin, Play } from 'lucide-react'
 import { api } from '../mock'
 import SopExecSummary from '../components/SopExecSummary'
+import { useToast } from '../components/Toast'
 
 // ─── 工具 ─────────────────────────────────────────────────────
 function formatLastExec(t) {
@@ -88,9 +90,9 @@ function SopFormModal({ sop, categories, actions, onClose, onSubmit }) {
   }
 
   return (
-    <div className="modal-mask" onClick={onClose}>
-      <div className="modal-box sop-modal-box" onClick={e => e.stopPropagation()}>
-        <div className="modal-title">{isEdit ? '编辑模板' : '新建 SOP 模板'}</div>
+    <div className="g-modal-mask" onClick={onClose}>
+      <div className="g-modal-box sop-modal-box" onClick={e => e.stopPropagation()}>
+        <div className="g-modal-title">{isEdit ? '编辑模板' : '新建 SOP 模板'}</div>
 
         <div className="form-group">
           <div className="form-label">模板名称 *</div>
@@ -132,7 +134,7 @@ function SopFormModal({ sop, categories, actions, onClose, onSubmit }) {
           <textarea className="form-textarea" value={remark} onChange={e => setRemark(e.target.value)} placeholder="最多200字" maxLength={200} rows={2} />
         </div>
 
-        <div className="modal-actions">
+        <div className="g-modal-actions">
           <button className="btn btn-outline" onClick={onClose}>取消</button>
           <button className={`btn btn-primary${!canSubmit ? ' disabled' : ''}`} onClick={handleSubmit} disabled={!canSubmit}>
             {isEdit ? '保存' : '创建'}
@@ -146,12 +148,12 @@ function SopFormModal({ sop, categories, actions, onClose, onSubmit }) {
 // ─── 操作菜单 ─────────────────────────────────────────────────
 function SopMenu({ sop, onClose, onEdit, onCopy, onDelete }) {
   return (
-    <div className="modal-mask" onClick={onClose}>
+    <div className="g-modal-mask" onClick={onClose}>
       <div className="action-menu" onClick={e => e.stopPropagation()}>
         <div className="action-menu-title">{sop.name}</div>
-        <button className="action-menu-item" onClick={onEdit}>✏️ 编辑</button>
-        <button className="action-menu-item" onClick={onCopy}>📋 复制模板</button>
-        <button className="action-menu-item danger" onClick={onDelete}>🗑️ 删除</button>
+        <button className="action-menu-item" onClick={onEdit}><Pencil size={14} /> 编辑</button>
+        <button className="action-menu-item" onClick={onCopy}><Copy size={14} /> 复制模板</button>
+        <button className="action-menu-item danger" onClick={onDelete}><Trash2 size={14} /> 删除</button>
         <button className="action-menu-item cancel" onClick={onClose}>取消</button>
       </div>
     </div>
@@ -186,7 +188,7 @@ function StepProgressBar({ steps, stepStates }) {
             {lineBefore}
             <div className="exec-progress-node-wrap">
               <div className={`exec-progress-node ${isDone ? 'done' : isCurrent ? 'current' : 'pending'}`}>
-                {isDone ? '✓' : idx + 1}
+                {isDone ? <Check size={12} /> : idx + 1}
               </div>
               <div className={`exec-progress-label ${isCurrent ? 'current' : ''}`}>
                 {idx + 1}步
@@ -213,7 +215,7 @@ function FocusedStepCard({ step, state, index, action, onComplete, onUndo }) {
     <div className="exec-focused-card">
       <div className="exec-focused-card-step">
         <div className={`exec-focused-card-order${isDone ? '' : ' playing'}`}>
-          {isDone ? '✓' : index + 1}
+          {isDone ? <Check size={16} /> : <Play size={14} fill="currentColor" />}
         </div>
         <div className="exec-focused-card-desc">{step.step_desc}</div>
       </div>
@@ -228,18 +230,18 @@ function FocusedStepCard({ step, state, index, action, onComplete, onUndo }) {
             <button
               className="exec-focused-card-btn success"
               onClick={() => handleResult('success')}
-            >✅ 成功</button>
+            ><Check size={14} /> 成功</button>
             <button
               className="exec-focused-card-btn fail"
               onClick={() => handleResult('fail')}
-            >❌ 失败</button>
+            ><X size={14} /> 失败</button>
           </div>
         ) : (
           <div className="exec-focused-card-buttons">
             <button
               className="exec-focused-card-btn success"
               onClick={() => onComplete(null)}
-            >✅ 完成此步</button>
+            ><Check size={14} /> 完成此步</button>
           </div>
         )
       ) : (
@@ -370,7 +372,7 @@ function SopCard({ sop, category, onExec, onLongPress }) {
       </div>
       <div className="sop-card-right">
         <span className="sop-card-steps">{sop.steps.length}步</span>
-        <button className="sop-exec-btn" onClick={e => { e.stopPropagation(); onExec(sop) }}>▶</button>
+        <button className="sop-exec-btn" onClick={e => { e.stopPropagation(); onExec(sop) }}><Play size={14} fill="currentColor" /></button>
       </div>
     </div>
   )
@@ -386,12 +388,7 @@ export default function SopPage() {
   const [editTarget, setEditTarget] = useState(null)   // null=关闭, false=新建, sop对象=编辑
   const [execTarget, setExecTarget] = useState(null)
   const [execSummary, setExecSummary] = useState(null)
-  const [toast, setToast] = useState('')
-
-  const showToast = (msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(''), 2000)
-  }
+  const toast = useToast()
 
   const loadSops = async () => {
     const data = await api.getSops(filterCategory ? { category_id: filterCategory } : {})
@@ -411,28 +408,28 @@ export default function SopPage() {
     await api.createSop(data)
     setEditTarget(null)
     loadSops()
-    showToast('模板已创建')
+    toast.success('模板已创建')
   }
 
   const handleUpdate = async (data) => {
     await api.updateSop(editTarget.id, data)
     setEditTarget(null)
     loadSops()
-    showToast('模板已保存')
+    toast.success('模板已保存')
   }
 
   const handleCopy = async (sop) => {
     setMenuTarget(null)
     await api.copySop(sop.id)
     loadSops()
-    showToast('已复制为副本')
+    toast.success('已复制为副本')
   }
 
   const handleDelete = async (sop) => {
     setMenuTarget(null)
     await api.deleteSop(sop.id)
     loadSops()
-    showToast('模板已删除')
+    toast.success('模板已删除')
   }
 
   const handleExecDone = (results) => {
@@ -441,7 +438,7 @@ export default function SopPage() {
     if (results && results.length > 0) {
       setExecSummary({ sopName: execTarget.name, results })
     } else {
-      showToast('执行完成，记录已保存')
+      toast.success('执行完成，记录已保存')
     }
   }
 
@@ -481,7 +478,7 @@ export default function SopPage() {
       <div className="card-list">
         {displaySops.length === 0 ? (
           <div className="empty-state">
-            <span className="empty-icon">📌</span>
+            <span className="empty-icon"><Pin size={28} /></span>
             <span className="empty-text">暂无 SOP 模板</span>
             <span className="empty-desc">点击右下角按钮新建</span>
           </div>
@@ -519,8 +516,6 @@ export default function SopPage() {
           onSubmit={editTarget ? handleUpdate : handleCreate}
         />
       )}
-
-      {toast ? <div className="toast">{toast}</div> : null}
     </div>
   )
 }

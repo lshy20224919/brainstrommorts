@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AlertTriangle, Check, X } from 'lucide-react'
 import Modal from './Modal'
 import { useToast } from './Toast'
 
@@ -40,7 +41,7 @@ export default function CheckinModal({ visible, action, actions, onClose, onSubm
   if (warningLaws && warningLaws.length > 0) {
     return (
       <Modal visible={true} title="" onClose={() => setWarningLaws(null)} className="g-warning-modal">
-        <div className="g-warning-header">⚠️ 避雷提醒</div>
+        <div className="g-warning-header"><AlertTriangle size={16} className="g-warning-icon" /> 避雷提醒</div>
         <div className="g-warning-desc">该分类下有以下负向规律，请注意规避：</div>
         <div className="g-warning-list">
           {warningLaws.map(law => (
@@ -73,8 +74,8 @@ export default function CheckinModal({ visible, action, actions, onClose, onSubm
       <div className="g-form-group">
         <div className="g-form-label">执行结果 *</div>
         <div className="g-checkin-btns">
-          <button className={`g-checkin-btn success ${result === 'success' ? 'active' : ''}`} onClick={() => setResult('success')}>✅ 成功</button>
-          <button className={`g-checkin-btn fail ${result === 'fail' ? 'active' : ''}`} onClick={() => setResult('fail')}>❌ 失败</button>
+          <button className={`g-checkin-btn success ${result === 'success' ? 'active' : ''}`} onClick={() => setResult('success')}><Check size={14} /> 成功</button>
+          <button className={`g-checkin-btn fail ${result === 'fail' ? 'active' : ''}`} onClick={() => setResult('fail')}><X size={14} /> 失败</button>
         </div>
       </div>
       <div className="g-form-group">

@@ -1,4 +1,6 @@
-# Feature Alignment: H5 与需求文档对齐
+> **⚠ SUPERSEDED** — 本 proposal 已迁移至顶层 `openspec/changes/feature-alignment/`（双端版本，含 design.md 与 tasks.md）。本文件保留作历史参考，不再实施。新约束：H5 与小程序功能不能有任何区别。
+
+# Feature Alignment: H5 与需求文档对齐（已废弃，参见顶层版本）
 
 ## 背景
 

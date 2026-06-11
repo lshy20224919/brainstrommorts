@@ -1,3 +1,5 @@
+import SensitiveText from './SensitiveText'
+
 export default function InspirationDetailPanel({ visible, inspiration, category, onClose }) {
   if (!visible || !inspiration) return null
 
@@ -15,7 +17,7 @@ export default function InspirationDetailPanel({ visible, inspiration, category,
       <div className="action-detail-body">
         <section className="action-detail-section">
           <div className="action-detail-section-title">内容</div>
-          <div className="detail-law-desc-block">{inspiration.desc}</div>
+          <SensitiveText as="div" className="detail-law-desc-block" id={`insp-detail-${inspiration.id}`} value={inspiration.desc} />
         </section>
 
         <section className="action-detail-section">

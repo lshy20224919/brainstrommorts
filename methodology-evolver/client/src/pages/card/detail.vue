@@ -98,7 +98,8 @@
               {{ record.exec_result === 1 ? '成功' : '失败' }}
             </view>
             <view class="record-info">
-              <text class="record-remark" v-if="record.exec_remark">{{ record.exec_remark }}</text>
+              <text v-if="record.exec_remark && isSensitiveHidden('rec-' + record.record_id)" class="sensitive-mask" @tap.stop="revealSensitive('rec-' + record.record_id)">点击查看</text>
+              <text v-else-if="record.exec_remark" class="record-remark">{{ record.exec_remark }}</text>
               <text class="record-time">{{ formatTime(record.exec_time) }}</text>
             </view>
           </view>
@@ -122,7 +123,8 @@
             <text class="law-type" :class="{ positive: law.law_type === 1, negative: law.law_type === 2 }">
               {{ law.law_type === 1 ? '正向' : '负向' }}
             </text>
-            <text class="law-desc">{{ law.law_desc }}</text>
+            <text v-if="isSensitiveHidden('law-' + law.law_id)" class="sensitive-mask" @tap.stop="revealSensitive('law-' + law.law_id)">点击查看</text>
+            <text v-else class="law-desc">{{ law.law_desc }}</text>
           </view>
         </view>
       </view>
@@ -158,8 +160,10 @@
 
 <script>
 import api from '@/utils/api.js'
+import sensitiveMixin from '@/mixins/sensitive.js'
 
 export default {
+  mixins: [sensitiveMixin],
   data() {
     return {
       loading: true,

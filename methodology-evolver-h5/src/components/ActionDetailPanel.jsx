@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../mock'
 import Loading from './Loading'
+import SensitiveText from './SensitiveText'
 
 function formatDateTime(iso) {
   const d = new Date(iso)
@@ -77,7 +78,9 @@ export default function ActionDetailPanel({ visible, action, category, onClose }
                             {record.exec_result === 1 ? '成功' : '失败'}
                           </span>
                         </div>
-                        <div className="action-detail-record-remark">{record.exec_remark || '无备注'}</div>
+                        {record.exec_remark
+                          ? <SensitiveText as="div" className="action-detail-record-remark" id={`action-rec-${record.id}`} value={record.exec_remark} />
+                          : <div className="action-detail-record-remark">无备注</div>}
                       </div>
                     </div>
                   ))}

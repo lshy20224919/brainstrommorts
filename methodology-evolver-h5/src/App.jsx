@@ -6,6 +6,8 @@ import CardLibPage from './pages/CardLibPage'
 import SopPage from './pages/SopPage'
 import ReviewPage from './pages/ReviewPage'
 import ProfilePage from './pages/ProfilePage'
+import LockScreen from './components/LockScreen'
+import { getLockEnabled } from './utils/privacy'
 import './App.css'
 
 const TABS = [
@@ -16,14 +18,27 @@ const TABS = [
   { key: 'profile', label: '我的', icon: User }
 ]
 
+function shouldLock() {
+  return getLockEnabled() && sessionStorage.getItem('privacy.unlocked') !== '1'
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('home')
   const [cardLibInit, setCardLibInit] = useState(null)
+  const [locked, setLocked] = useState(shouldLock())
 
   const handleSwitchTab = (tab, params) => {
     if (params) setCardLibInit(params)
     else setCardLibInit(null)
     setActiveTab(tab)
+  }
+
+  if (locked) {
+    return (
+      <ToastProvider>
+        <LockScreen onUnlock={() => setLocked(false)} />
+      </ToastProvider>
+    )
   }
 
   return (

@@ -81,10 +81,12 @@ const mockDB = {
       id: 1,
       name: '均值回归',
       category: '投资',
+      category_id: 1,
       description: '资产价格长期会回归其内在价值',
       source: '霍华德·马克斯',
       applicability: '股票、房产等大多数资产',
       warning_signs: ['过度乐观时', '泡沫迹象'],
+      direction: 'positive',
       is_retired: false,
       created_at: '2024-01-20T12:00:00Z'
     },
@@ -92,12 +94,27 @@ const mockDB = {
       id: 2,
       name: '长期坚持效果更佳',
       category: '健康',
+      category_id: 2,
       description: '运动需要持续才能看到效果',
       source: '个人经验',
       applicability: '健身、习惯养成',
       warning_signs: ['中断超过3天', '动力下降'],
+      direction: 'positive',
       is_retired: false,
       created_at: '2024-02-15T10:00:00Z'
+    },
+    {
+      id: 3,
+      name: '情绪化追涨杀跌注定亏损',
+      category: '投资',
+      category_id: 1,
+      description: '情绪驱动的交易胜率显著低于理性决策',
+      source: '个人经验',
+      applicability: '股票、可转债等波动资产',
+      warning_signs: ['市场剧烈波动', '热点轮动'],
+      direction: 'negative',
+      is_retired: false,
+      created_at: '2024-03-01T10:00:00Z'
     }
   ],
   sops: [
@@ -390,12 +407,29 @@ export const mockApi = {
       mockDB.laws = mockDB.laws.filter(l => l.id !== id)
       return { code: 200 }
     },
-    checkWarnings: async (params) => {
-      await delay()
-      return { code: 200, data: [] }
+    checkWarnings: async (params = {}) => {
+      await delay(100)
+      const { category_id } = params
+      let log = {}
+      try { log = uni.getStorageSync('mock_popup_log') || {} } catch (e) { log = {} }
+      const now = Date.now()
+      const matched = mockDB.laws.filter(l =>
+        l.direction === 'negative' && !l.is_retired && (!category_id || l.category_id === category_id)
+      )
+      const fresh = matched.filter(l => {
+        const last = log[l.id]
+        return !last || (now - last > 24 * 3600000)
+      })
+      return { code: 200, data: fresh }
     },
-    logWarning: async (data) => {
-      await delay()
+    logWarning: async (data = {}) => {
+      await delay(50)
+      const { law_ids = [] } = data
+      let log = {}
+      try { log = uni.getStorageSync('mock_popup_log') || {} } catch (e) { log = {} }
+      const now = Date.now()
+      law_ids.forEach(id => { log[id] = now })
+      try { uni.setStorageSync('mock_popup_log', log) } catch (e) {}
       return { code: 200 }
     }
   },
@@ -454,6 +488,55 @@ export const mockApi = {
     dismissTodo: async (data) => {
       await delay()
       return { code: 200 }
+    },
+    rankConfig: async () => {
+      await delay()
+      const cfg = uni.getStorageSync('rank_config') || { action: 5, mistake: 5, positive_law: 5, negative_law: 5 }
+      return { code: 200, data: cfg }
+    },
+    updateRankConfig: async (data) => {
+      await delay()
+      uni.setStorageSync('rank_config', data)
+      return { code: 200, data }
+    }
+  },
+  evolution: {
+    progress: async () => {
+      await delay(100)
+      const actions = (mockDB.actions || []).filter(a => a.status === 0)
+      const totalExec = actions.reduce((s, a) => s + (a.exec_count || 0), 0)
+      const lawCount = (mockDB.laws || []).length
+      const sopCount = (mockDB.sops || []).length
+      const reviewCount = (mockDB.reviews || []).length
+      return {
+        code: 200,
+        data: [
+          { key: 'record', label: '记录', done: actions.length >= 1, value: `${actions.length} 条` },
+          { key: 'verify', label: '验证', done: totalExec >= 5, value: `${totalExec} 次` },
+          { key: 'extract', label: '提炼', done: lawCount >= 1, value: `${lawCount} 条` },
+          { key: 'solidify', label: '固化', done: sopCount >= 1, value: `${sopCount} 个` },
+          { key: 'iterate', label: '迭代', done: reviewCount >= 1, value: `${reviewCount} 次` }
+        ]
+      }
+    }
+  },
+  suggestions: {
+    smart: async () => {
+      await delay(100)
+      const actions = (mockDB.actions || []).filter(a => a.status === 0)
+      const totalExec = actions.reduce((s, a) => s + (a.exec_count || 0), 0)
+      const lawCount = (mockDB.laws || []).length
+      const sopCount = (mockDB.sops || []).length
+      const reviewCount = (mockDB.reviews || []).length
+
+      if (actions.length === 0) return { code: 200, data: { text: '记录你做对的第一件事', action: 'create_action', icon: '✏️' } }
+      if (totalExec < 5) return { code: 200, data: { text: '去执行一次，验证它是否有效', action: 'checkin', icon: '✅' } }
+      if (lawCount === 0) return { code: 200, data: { text: '从成功经验中提炼规律', action: 'create_law', icon: '💡' } }
+      if (sopCount === 0) return { code: 200, data: { text: '把规律组合成可执行的流程', action: 'go_sop', icon: '📌' } }
+      if (reviewCount === 0) return { code: 200, data: { text: '做一次复盘，看看方法论是否在进化', action: 'go_review', icon: '🔄' } }
+      const best = [...actions].sort((a, b) => (b.exec_count || 0) - (a.exec_count || 0))[0]
+      if (best) return { code: 200, data: { text: `"${best.action_name || best.name}"成功率 ${best.success_rate ?? 0}%，已执行 ${best.exec_count || 0} 次，建议提炼为 SOP`, action: 'go_sop', icon: '🚀' } }
+      return { code: 200, data: { text: '继续保持，你的方法论在持续进化', action: null, icon: '🎯' } }
     }
   },
   migrate: {
@@ -497,6 +580,81 @@ export const mockApi = {
     iterateLaw: async (id, data) => {
       await delay()
       return { code: 200 }
+    },
+    retiredItems: async (params = {}) => {
+      await delay()
+      const { type, page = 1, page_size = 20 } = params
+      const all = []
+      if (!type || type === 'action') {
+        for (const a of mockDB.actions.filter(x => x.is_archived === true)) {
+          const cat = mockDB.categories.find(c => c.id === a.category_id)
+          all.push({ type: 'action', id: a.id, name: a.name, category_name: cat ? cat.name : '', retired_time: a.retired_at || a.updated_at || a.created_at })
+        }
+      }
+      if (!type || type === 'mistake') {
+        for (const m of mockDB.mistakes.filter(x => x.status === 2)) {
+          const cat = mockDB.categories.find(c => c.id === m.category_id)
+          all.push({ type: 'mistake', id: m.id, name: m.name, category_name: cat ? cat.name : '', retired_time: m.retired_at || m.updated_at || m.created_at })
+        }
+      }
+      if (!type || type === 'law') {
+        for (const l of mockDB.laws.filter(x => x.is_retired === true)) {
+          all.push({ type: 'law', id: l.id, name: l.name, category_name: l.category || '', retired_time: l.retired_at || l.updated_at || l.created_at })
+        }
+      }
+      all.sort((a, b) => new Date(b.retired_time || 0) - new Date(a.retired_time || 0))
+      const start = (page - 1) * page_size
+      return { code: 200, data: { list: all.slice(start, start + page_size), total: all.length } }
+    },
+    restoreItem: async (type, id) => {
+      await delay()
+      if (type === 'action') {
+        const idx = mockDB.actions.findIndex(x => x.id === id)
+        if (idx < 0) return { code: 404, message: '记录不存在' }
+        if (!mockDB.actions[idx].is_archived) return { code: 400, message: '该记录未被淘汰' }
+        mockDB.actions[idx].is_archived = false
+        return { code: 200 }
+      }
+      if (type === 'law') {
+        const idx = mockDB.laws.findIndex(x => x.id === id)
+        if (idx < 0) return { code: 404, message: '记录不存在' }
+        if (!mockDB.laws[idx].is_retired) return { code: 400, message: '该记录未被淘汰' }
+        mockDB.laws[idx].is_retired = false
+        return { code: 200 }
+      }
+      if (type === 'mistake') {
+        const idx = mockDB.mistakes.findIndex(x => x.id === id)
+        if (idx < 0) return { code: 404, message: '记录不存在' }
+        if (mockDB.mistakes[idx].status !== 2) return { code: 400, message: '该记录未被淘汰' }
+        mockDB.mistakes[idx].status = 0
+        return { code: 200 }
+      }
+      return { code: 400, message: '未知类型' }
+    },
+    permanentDeleteItem: async (type, id) => {
+      await delay()
+      if (type === 'action') {
+        const idx = mockDB.actions.findIndex(x => x.id === id)
+        if (idx < 0) return { code: 404, message: '记录不存在' }
+        mockDB.actions.splice(idx, 1)
+        for (let i = mockDB.events.length - 1; i >= 0; i--) {
+          if (mockDB.events[i].action_id === id) mockDB.events.splice(i, 1)
+        }
+        return { code: 200 }
+      }
+      if (type === 'law') {
+        const idx = mockDB.laws.findIndex(x => x.id === id)
+        if (idx < 0) return { code: 404, message: '记录不存在' }
+        mockDB.laws.splice(idx, 1)
+        return { code: 200 }
+      }
+      if (type === 'mistake') {
+        const idx = mockDB.mistakes.findIndex(x => x.id === id)
+        if (idx < 0) return { code: 404, message: '记录不存在' }
+        mockDB.mistakes.splice(idx, 1)
+        return { code: 200 }
+      }
+      return { code: 400, message: '未知类型' }
     }
   },
   sops: {
@@ -587,4 +745,5 @@ export const mockApi = {
   }
 }
 
+export { mockDB }
 export default mockApi

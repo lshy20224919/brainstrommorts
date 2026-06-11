@@ -8,6 +8,26 @@
 
     <!-- 表单 -->
     <view class="form">
+      <!-- 方向 -->
+      <view class="form-item">
+        <view class="form-label">
+          <text class="required">*</text>
+          <text>方向</text>
+        </view>
+        <view class="direction-row">
+          <view
+            class="direction-btn positive"
+            :class="{ active: form.direction === 'positive' }"
+            @tap="form.direction = 'positive'"
+          >正向灵感</view>
+          <view
+            class="direction-btn negative"
+            :class="{ active: form.direction === 'negative' }"
+            @tap="form.direction = 'negative'"
+          >负向灵感</view>
+        </view>
+      </view>
+
       <!-- 内容描述 -->
       <view class="form-item">
         <view class="form-label">
@@ -88,7 +108,8 @@ export default {
       form: {
         desc: '',
         source: '',
-        category_id: null
+        category_id: null,
+        direction: 'positive'
       }
     }
   },
@@ -99,7 +120,7 @@ export default {
       return cat ? cat.name : ''
     },
     canSubmit() {
-      return this.form.desc.trim().length > 0
+      return this.form.desc.trim().length > 0 && (this.form.direction === 'positive' || this.form.direction === 'negative')
     }
   },
 
@@ -132,7 +153,7 @@ export default {
 
     async submit() {
       if (!this.canSubmit) {
-        uni.showToast({ title: '请填写内容描述', icon: 'none' })
+        uni.showToast({ title: '请填写内容描述并选择方向', icon: 'none' })
         return
       }
 
@@ -140,7 +161,8 @@ export default {
         await api.inspirations.create({
           desc: this.form.desc.trim(),
           source: this.form.source || '',
-          category_id: this.form.category_id
+          category_id: this.form.category_id,
+          direction: this.form.direction
         })
 
         uni.showToast({ title: '保存成功', icon: 'success' })
@@ -232,6 +254,36 @@ export default {
   font-size: 22rpx;
   color: $text-light;
   margin-top: 8rpx;
+}
+
+.direction-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.direction-btn {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12rpx;
+  background-color: $bg-color;
+  font-size: 28rpx;
+  color: $text-color;
+  border: 2rpx solid transparent;
+
+  &.positive.active {
+    border-color: #FBBF24;
+    background-color: rgba(251, 191, 36, 0.08);
+    color: #B45309;
+  }
+
+  &.negative.active {
+    border-color: #A78BFA;
+    background-color: rgba(167, 139, 250, 0.08);
+    color: #6D28D9;
+  }
 }
 
 .source-tags {

@@ -43,7 +43,8 @@
       <view class="section">
         <view class="section-title">✅ 做得好的地方</view>
         <view class="content-box">
-          <text v-if="review.good_parts">{{ review.good_parts }}</text>
+          <text v-if="review.good_parts && isSensitiveHidden('review-good-' + review.review_id)" class="sensitive-mask" @tap.stop="revealSensitive('review-good-' + review.review_id)">点击查看</text>
+          <text v-else-if="review.good_parts">{{ review.good_parts }}</text>
           <text class="placeholder" v-else>暂无内容</text>
         </view>
       </view>
@@ -52,7 +53,8 @@
       <view class="section">
         <view class="section-title">🔧 需要改进的地方</view>
         <view class="content-box">
-          <text v-if="review.improve_parts">{{ review.improve_parts }}</text>
+          <text v-if="review.improve_parts && isSensitiveHidden('review-improve-' + review.review_id)" class="sensitive-mask" @tap.stop="revealSensitive('review-improve-' + review.review_id)">点击查看</text>
+          <text v-else-if="review.improve_parts">{{ review.improve_parts }}</text>
           <text class="placeholder" v-else>暂无内容</text>
         </view>
       </view>
@@ -127,8 +129,10 @@
 
 <script>
 import api from '@/utils/api.js'
+import sensitiveMixin from '@/mixins/sensitive.js'
 
 export default {
+  mixins: [sensitiveMixin],
   data() {
     return {
       loading: true,

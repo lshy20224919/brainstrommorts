@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react'
 import { api } from '../mock'
+import ConfirmDialog from '../components/ConfirmDialog'
+import { useToast } from '../components/Toast'
+import PinModal from '../components/PinModal'
+import { getLockEnabled, getSensitiveHidden, setSensitiveHidden, onPrivacyChange } from '../utils/privacy'
 
 function UserCard({ settings }) {
   const days = Math.max(1, Math.floor((Date.now() - new Date(settings.register_time).getTime()) / (1000 * 60 * 60 * 24)))
@@ -143,13 +147,14 @@ function CategoryManager({ categories, onAdd, onRename, onRemove, onReorder }) {
 function DataManager({ totalRecords }) {
   const [loading, setLoading] = useState(null)
   const [confirmType, setConfirmType] = useState(null)
+  const toast = useToast()
 
   const doAction = (type) => {
     setConfirmType(null)
     setLoading(type)
     setTimeout(() => {
       setLoading(null)
-      alert(type === 'backup' ? '备份成功' : '还原成功')
+      toast.success(type === 'backup' ? '备份成功' : '还原成功')
     }, 1500)
   }
 
@@ -171,24 +176,19 @@ function DataManager({ totalRecords }) {
         </div>
       </div>
 
-      {confirmType && (
-        <div className="modal-mask" onClick={() => setConfirmType(null)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <div className="modal-title">{confirmType === 'backup' ? '确认备份' : '数据还原'}</div>
-            <p className="profile-confirm-text">
-              {confirmType === 'backup' ? '是否将本地数据加密备份到云端？' : '还原将覆盖当前数据，此操作不可撤销，是否继续？'}
-            </p>
-            <div className="modal-actions">
-              <button className="btn btn-outline" onClick={() => setConfirmType(null)}>取消</button>
-              <button className="btn btn-primary" onClick={() => doAction(confirmType)}>确认</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        visible={!!confirmType}
+        title={confirmType === 'backup' ? '确认备份' : '数据还原'}
+        content={confirmType === 'backup' ? '是否将本地数据加密备份到云端？' : '还原将覆盖当前数据，此操作不可撤销，是否继续？'}
+        confirmText={confirmType === 'backup' ? '备份' : '还原'}
+        danger={confirmType === 'restore'}
+        onConfirm={() => doAction(confirmType)}
+        onCancel={() => setConfirmType(null)}
+      />
 
       {loading && (
-        <div className="modal-mask">
-          <div className="modal-box profile-loading-box">
+        <div className="g-modal-mask">
+          <div className="g-modal-box profile-loading-box">
             <div className="profile-loading-spinner"></div>
             <p>{loading === 'backup' ? '备份中...' : '还原中...'}</p>
           </div>
@@ -197,11 +197,63 @@ function DataManager({ totalRecords }) {
     </div>
   )
 }
+function PrivacySection() {
+  const [lockEnabled, setLockEnabled] = useState(getLockEnabled())
+  const [hidden, setHidden] = useState(getSensitiveHidden())
+  const [pinMode, setPinMode] = useState(null)
+  const toast = useToast()
+
+  useEffect(() => onPrivacyChange(() => {
+    setLockEnabled(getLockEnabled())
+    setHidden(getSensitiveHidden())
+  }), [])
+
+  const onLockToggle = (e) => {
+    setPinMode(e.target.checked ? 'set' : 'disable')
+  }
+  const onHiddenToggle = (e) => {
+    setSensitiveHidden(e.target.checked)
+  }
+
+  return (
+    <div className="profile-section">
+      <div className="profile-section-title">隐私设置</div>
+      <div className="profile-section-body">
+        <div className="profile-setting-row">
+          <span className="profile-setting-label">解锁密码</span>
+          <div className="privacy-row-actions">
+            {lockEnabled && <button className="profile-cat-btn" onClick={() => setPinMode('change')}>修改</button>}
+            <label className="profile-toggle">
+              <input type="checkbox" checked={lockEnabled} onChange={onLockToggle} />
+              <span className="profile-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+        <div className="profile-setting-row">
+          <span className="profile-setting-label">敏感内容隐藏</span>
+          <label className="profile-toggle">
+            <input type="checkbox" checked={hidden} onChange={onHiddenToggle} />
+            <span className="profile-toggle-slider"></span>
+          </label>
+        </div>
+        <div className="profile-setting-hint">本地软隐私：数据不上传，可阻止他人快速翻看。忘记密码将清空全部本地数据。</div>
+      </div>
+      <PinModal
+        mode={pinMode}
+        visible={!!pinMode}
+        onClose={() => setPinMode(null)}
+        onSuccess={(msg) => toast.success(msg)}
+      />
+    </div>
+  )
+}
+
 export default function ProfilePage() {
   const [settings, setSettings] = useState({ smart_migrate_on: true, warning_popup_on: true, dark_mode: 2, register_time: new Date().toISOString() })
   const [categories, setCategories] = useState([])
   const [actions, setActions] = useState([])
   const [laws, setLaws] = useState([])
+  const [confirmState, setConfirmState] = useState(null)
 
   useEffect(() => {
     api.getSettings().then(setSettings)
@@ -225,15 +277,31 @@ export default function ProfilePage() {
     setCategories(await api.getCategories())
   }
 
-  const handleRemoveCategory = async (id) => {
-    if (!confirm('确定删除该分类？')) return
-    await api.removeCategory(id)
-    setCategories(await api.getCategories())
+  const handleRemoveCategory = (id) => {
+    setConfirmState({
+      title: '删除分类',
+      content: '确定删除该分类？删除后该分类下的内容仍会保留。',
+      confirmText: '删除',
+      onConfirm: async () => {
+        await api.removeCategory(id)
+        setCategories(await api.getCategories())
+        setConfirmState(null)
+      }
+    })
   }
 
   const handleReorderCategory = async (id, direction) => {
     await api.reorderCategory(id, direction)
     setCategories(await api.getCategories())
+  }
+
+  const handleResetAll = () => {
+    setConfirmState({
+      title: '重置所有数据',
+      content: '此操作将清空全部本地数据并恢复默认状态，无法撤销。确定继续？',
+      confirmText: '重置',
+      onConfirm: () => { api.resetAllData() }
+    })
   }
 
   const totalRecords = actions.length + laws.length
@@ -250,6 +318,7 @@ export default function ProfilePage() {
         <UserCard settings={settings} />
         <DataOverview actions={actions} laws={laws} />
         <SettingsSection settings={settings} onUpdate={handleUpdateSettings} />
+        <PrivacySection />
         <CategoryManager categories={categories} onAdd={handleAddCategory} onRename={handleRenameCategory} onRemove={handleRemoveCategory} onReorder={handleReorderCategory} />
         <DataManager totalRecords={totalRecords} />
         <div className="profile-section">
@@ -259,13 +328,22 @@ export default function ProfilePage() {
               <span className="profile-setting-label">版本</span>
               <span className="profile-setting-value">v1.0.0</span>
             </div>
-            <div className="profile-setting-row" onClick={() => { if (confirm('重置将清除所有数据并恢复默认，确定？')) api.resetAllData() }}>
+            <div className="profile-setting-row" onClick={handleResetAll}>
               <span className="profile-setting-label" style={{ color: '#F87272' }}>重置所有数据</span>
               <span className="profile-setting-arrow">›</span>
             </div>
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        visible={!!confirmState}
+        title={confirmState?.title}
+        content={confirmState?.content}
+        confirmText={confirmState?.confirmText}
+        danger
+        onConfirm={confirmState?.onConfirm}
+        onCancel={() => setConfirmState(null)}
+      />
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../mock'
 import Loading from './Loading'
+import SensitiveText from './SensitiveText'
 
 export default function LawDetailPanel({ visible, law, category, onClose }) {
   const [relatedAction, setRelatedAction] = useState(null)
@@ -35,7 +36,7 @@ export default function LawDetailPanel({ visible, law, category, onClose }) {
           <>
             <section className="action-detail-section">
               <div className="action-detail-section-title">规律描述</div>
-              <div className="detail-law-desc-block">{law.law_desc}</div>
+              <SensitiveText as="div" className="detail-law-desc-block" id={`law-desc-${law.id}`} value={law.law_desc} />
             </section>
 
             <section className="action-detail-section">

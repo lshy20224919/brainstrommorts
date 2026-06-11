@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { Check, Pencil, Pin, Archive, Trash2, Lightbulb, ClipboardList, Shuffle, Ban, CircleSlash } from 'lucide-react'
 import { api } from '../mock'
 import { useToast } from '../components/Toast'
 import ActionSheet from '../components/ActionSheet'
@@ -13,6 +14,7 @@ import MistakeDetailPanel from '../components/MistakeDetailPanel'
 import LawDetailPanel from '../components/LawDetailPanel'
 import InspirationDetailPanel from '../components/InspirationDetailPanel'
 import Loading from '../components/Loading'
+import SensitiveText from '../components/SensitiveText'
 
 function UnifiedCard({ title, badge, badgeClass, meta, data, borderColor, onClick, onLongPress, rate }) {
   const touchTimer = useRef(null)
@@ -150,43 +152,43 @@ export default function CardLibPage({ initParams }) {
   const openActionSheet = (action) => {
     setActionSheet({
       actions: [
-        { icon: '✅', label: '打卡', onClick: () => setCheckinTarget(action) },
-        { icon: '✏️', label: '编辑', onClick: () => setEditActionTarget(action) },
-        { icon: '📌', label: action.pinned ? '取消置顶' : '置顶', onClick: async () => { await api.updateAction(action.id, { pinned: action.pinned ? 0 : 1 }); loadActions() } },
-        { icon: '📦', label: '归档', onClick: async () => { await api.updateAction(action.id, { status: 1 }); loadActions(); toast.info('已归档') } },
-        { icon: '🔀', label: '迁移', onClick: () => setMigrateTarget(action) },
-        { icon: '🗑️', label: '删除', danger: true, onClick: async () => { try { await api.deleteAction(action.id); loadActions(); toast.success('已删除') } catch (e) { toast.error(e.message) } } }
+        { icon: <Check size={16} />, label: '打卡', onClick: () => setCheckinTarget(action) },
+        { icon: <Pencil size={16} />, label: '编辑', onClick: () => setEditActionTarget(action) },
+        { icon: <Pin size={16} />, label: action.pinned ? '取消置顶' : '置顶', onClick: async () => { await api.updateAction(action.id, { pinned: action.pinned ? 0 : 1 }); loadActions() } },
+        { icon: <Archive size={16} />, label: '归档', onClick: async () => { await api.updateAction(action.id, { status: 1 }); loadActions(); toast.info('已归档') } },
+        { icon: <Shuffle size={16} />, label: '迁移', onClick: () => setMigrateTarget(action) },
+        { icon: <Trash2 size={16} />, label: '删除', danger: true, onClick: async () => { try { await api.deleteAction(action.id); loadActions(); toast.success('已删除') } catch (e) { toast.error(e.message) } } }
       ]
     })
   }
   const openMistakeSheet = (mistake) => {
     setActionSheet({
       actions: [
-        { icon: '✏️', label: '编辑', onClick: () => setEditMistakeTarget(mistake) },
-        { icon: '📌', label: mistake.pinned ? '取消置顶' : '置顶', onClick: async () => { await api.updateMistake(mistake.id, { pinned: mistake.pinned ? 0 : 1 }); loadMistakes() } },
-        { icon: '🔀', label: '迁移', onClick: () => setMigrateTarget(mistake) },
-        { icon: '🚫', label: '淘汰', danger: true, onClick: async () => { await api.updateMistake(mistake.id, { status: 2 }); loadMistakes(); toast.info('已淘汰') } },
-        { icon: '🗑️', label: '删除', danger: true, onClick: async () => { try { await api.deleteMistake(mistake.id); loadMistakes(); toast.success('已删除') } catch (e) { toast.error(e.message) } } }
+        { icon: <Pencil size={16} />, label: '编辑', onClick: () => setEditMistakeTarget(mistake) },
+        { icon: <Pin size={16} />, label: mistake.pinned ? '取消置顶' : '置顶', onClick: async () => { await api.updateMistake(mistake.id, { pinned: mistake.pinned ? 0 : 1 }); loadMistakes() } },
+        { icon: <Shuffle size={16} />, label: '迁移', onClick: () => setMigrateTarget(mistake) },
+        { icon: <Ban size={16} />, label: '淘汰', danger: true, onClick: async () => { await api.updateMistake(mistake.id, { status: 2 }); loadMistakes(); toast.info('已淘汰') } },
+        { icon: <Trash2 size={16} />, label: '删除', danger: true, onClick: async () => { try { await api.deleteMistake(mistake.id); loadMistakes(); toast.success('已删除') } catch (e) { toast.error(e.message) } } }
       ]
     })
   }
   const openLawSheet = (law) => {
     setActionSheet({
       actions: [
-        { icon: '✏️', label: '编辑', onClick: () => setEditLawTarget(law) },
-        { icon: '🔀', label: '迁移', onClick: () => setMigrateTarget(law) },
-        { icon: '🚫', label: '淘汰', danger: true, onClick: async () => { await api.updateLaw(law.id, { status: 2 }); loadLaws(); toast.info('已淘汰') } },
-        { icon: '🗑️', label: '删除', danger: true, onClick: async () => { try { await api.deleteLaw(law.id); loadLaws(); toast.success('已删除') } catch (e) { toast.error(e.message) } } }
+        { icon: <Pencil size={16} />, label: '编辑', onClick: () => setEditLawTarget(law) },
+        { icon: <Shuffle size={16} />, label: '迁移', onClick: () => setMigrateTarget(law) },
+        { icon: <Ban size={16} />, label: '淘汰', danger: true, onClick: async () => { await api.updateLaw(law.id, { status: 2 }); loadLaws(); toast.info('已淘汰') } },
+        { icon: <Trash2 size={16} />, label: '删除', danger: true, onClick: async () => { try { await api.deleteLaw(law.id); loadLaws(); toast.success('已删除') } catch (e) { toast.error(e.message) } } }
       ]
     })
   }
   const openInspirationSheet = (insp) => {
     setActionSheet({
       actions: [
-        { icon: '✅', label: '转为正确的事', onClick: async () => { await api.convertInspiration(insp.id, 'action'); loadInspirations(); setActionSheet(null); setEditActionTarget({ name: insp.desc, category_id: insp.category_id }) } },
-        { icon: '⛔', label: '转为错误的事', onClick: async () => { await api.convertInspiration(insp.id, 'mistake'); loadInspirations(); setActionSheet(null); setEditMistakeTarget({ name: insp.desc, category_id: insp.category_id }) } },
-        { icon: '💡', label: '转为规律', onClick: async () => { await api.convertInspiration(insp.id, 'law'); loadInspirations(); setActionSheet(null); setEditLawTarget({ law_desc: insp.desc, category_id: insp.category_id }) } },
-        { icon: '🗑️', label: '删除', danger: true, onClick: async () => { await api.deleteInspiration(insp.id); loadInspirations(); toast.success('已删除') } }
+        { icon: <Check size={16} />, label: '转为正确的事', onClick: async () => { await api.convertInspiration(insp.id, 'action'); loadInspirations(); setActionSheet(null); setEditActionTarget({ name: insp.desc, category_id: insp.category_id }) } },
+        { icon: <CircleSlash size={16} />, label: '转为错误的事', onClick: async () => { await api.convertInspiration(insp.id, 'mistake'); loadInspirations(); setActionSheet(null); setEditMistakeTarget({ name: insp.desc, category_id: insp.category_id }) } },
+        { icon: <Lightbulb size={16} />, label: '转为规律', onClick: async () => { await api.convertInspiration(insp.id, 'law'); loadInspirations(); setActionSheet(null); setEditLawTarget({ law_desc: insp.desc, category_id: insp.category_id }) } },
+        { icon: <Trash2 size={16} />, label: '删除', danger: true, onClick: async () => { await api.deleteInspiration(insp.id); loadInspirations(); toast.success('已删除') } }
       ]
     })
   }
@@ -221,7 +223,7 @@ export default function CardLibPage({ initParams }) {
 
     if (primaryTab === 'behavior' && subTab === 'action') {
       const list = getSortedActions()
-      if (list.length === 0) return <div className="empty-state"><span className="empty-icon">📋</span><span className="empty-text">暂无正确的事</span></div>
+      if (list.length === 0) return <div className="empty-state"><span className="empty-icon"><ClipboardList size={28} /></span><span className="empty-text">暂无正确的事</span></div>
       return list.map(action => {
         const cat = getCategory(action.category_id)
         return <UnifiedCard key={action.id} title={action.name} badge={action.pinned === 1 ? '置顶' : null} badgeClass="badge-pinned" meta={<>{cat?.name} · 执行 {action.exec_count} 次</>} data={action.success_rate != null ? `${action.success_rate}%` : '—'} rate={action.success_rate} borderColor={cat?.color || 'var(--accent)'} onClick={() => setDetailAction(action)} onLongPress={() => openActionSheet(action)} />
@@ -230,7 +232,7 @@ export default function CardLibPage({ initParams }) {
 
     if (primaryTab === 'behavior' && subTab === 'mistake') {
       const list = getSortedMistakes()
-      if (list.length === 0) return <div className="empty-state"><span className="empty-icon">⛔</span><span className="empty-text">暂无错误的事</span></div>
+      if (list.length === 0) return <div className="empty-state"><span className="empty-icon"><CircleSlash size={28} /></span><span className="empty-text">暂无错误的事</span></div>
       return list.map(mistake => {
         const cat = getCategory(mistake.category_id)
         const relatedCount = (mistake.related_law_ids || []).length
@@ -241,7 +243,7 @@ export default function CardLibPage({ initParams }) {
     if (primaryTab === 'law') {
       const type = subTab === 'positive' ? 1 : 2
       const list = getSortedLaws(type)
-      if (list.length === 0) return <div className="empty-state"><span className="empty-icon">💡</span><span className="empty-text">暂无{subTab === 'positive' ? '正向' : '负向'}规律</span></div>
+      if (list.length === 0) return <div className="empty-state"><span className="empty-icon"><Lightbulb size={28} /></span><span className="empty-text">暂无{subTab === 'positive' ? '正向' : '负向'}规律</span></div>
       return list.map(law => {
         const cat = getCategory(law.category_id)
         const relatedAction = law.related_action_id ? getAction(law.related_action_id) : null
@@ -252,10 +254,10 @@ export default function CardLibPage({ initParams }) {
     if (primaryTab === 'inspiration') {
       const dir = subTab
       const list = getSortedInspirations(dir)
-      if (list.length === 0) return <div className="empty-state"><span className="empty-icon">💡</span><span className="empty-text">暂无{dir === 'positive' ? '正向' : '负向'}灵感</span></div>
+      if (list.length === 0) return <div className="empty-state"><span className="empty-icon"><Lightbulb size={28} /></span><span className="empty-text">暂无{dir === 'positive' ? '正向' : '负向'}灵感</span></div>
       return list.map(insp => {
         const cat = getCategory(insp.category_id)
-        return <UnifiedCard key={insp.id} title={insp.desc} meta={<>{cat?.name || ''}{insp.source ? ` · ${insp.source}` : ''}</>} data={new Date(insp.created_time).toLocaleDateString()} borderColor={dir === 'positive' ? 'var(--accent)' : '#A78BFA'} onClick={() => setDetailInspiration(insp)} onLongPress={() => openInspirationSheet(insp)} />
+        return <UnifiedCard key={insp.id} title={<SensitiveText id={`insp-${insp.id}`} value={insp.desc} />} meta={<>{cat?.name || ''}{insp.source ? ` · ${insp.source}` : ''}</>} data={new Date(insp.created_time).toLocaleDateString()} borderColor={dir === 'positive' ? 'var(--accent)' : '#A78BFA'} onClick={() => setDetailInspiration(insp)} onLongPress={() => openInspirationSheet(insp)} />
       })
     }
   }

@@ -20,16 +20,16 @@
             :class="{ active: form.law_type === 1 }"
             @tap="form.law_type = 1"
           >
-            <text class="type-icon">✅</text>
+            <view class="type-icon"><app-icon name="check" :size="32" :color="form.law_type === 1 ? '#36D399' : '#9CA3AF'" /></view>
             <text class="type-name">正向规律</text>
             <text class="type-desc">成功的经验，值得复用</text>
           </view>
-          <view 
-            class="type-btn negative" 
+          <view
+            class="type-btn negative"
             :class="{ active: form.law_type === 2 }"
             @tap="form.law_type = 2"
           >
-            <text class="type-icon">⚠️</text>
+            <view class="type-icon"><app-icon name="alert" :size="32" :color="form.law_type === 2 ? '#F87272' : '#9CA3AF'" /></view>
             <text class="type-name">负向规律</text>
             <text class="type-desc">失败的教训，规避重复</text>
           </view>
@@ -121,8 +121,10 @@
 
 <script>
 import api from '@/utils/api.js'
+import AppIcon from '@/components/icon.vue'
 
 export default {
+  components: { AppIcon },
   data() {
     return {
       categories: [],

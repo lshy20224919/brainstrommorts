@@ -115,6 +115,14 @@
       }
     },
     {
+      "path": "pages/review/retired",
+      "style": {
+        "navigationBarTitleText": "淘汰库",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white"
+      }
+    },
+    {
       "path": "pages/category/manage",
       "style": {
         "navigationBarTitleText": "分类管理",
@@ -144,6 +152,15 @@
         "navigationBarTitleText": "登录",
         "navigationBarBackgroundColor": "#162238",
         "navigationBarTextStyle": "white"
+      }
+    },
+    {
+      "path": "pages/lock/index",
+      "style": {
+        "navigationBarTitleText": "解锁",
+        "navigationBarBackgroundColor": "#162238",
+        "navigationBarTextStyle": "white",
+        "navigationStyle": "custom"
       }
     }
   ],

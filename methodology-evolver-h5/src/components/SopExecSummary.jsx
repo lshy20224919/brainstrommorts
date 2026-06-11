@@ -1,3 +1,5 @@
+import { Check, X } from 'lucide-react'
+
 export default function SopExecSummary({ visible, sopName, results, onClose }) {
   if (!visible) return null
 
@@ -27,7 +29,7 @@ export default function SopExecSummary({ visible, sopName, results, onClose }) {
         {results.map((r, i) => (
           <div key={i} className="sop-exec-summary-item">
             <span className={`sop-exec-summary-badge ${r.result === 'success' ? 'success' : 'fail'}`}>
-              {r.result === 'success' ? '✓' : '✕'}
+              {r.result === 'success' ? <Check size={14} /> : <X size={14} />}
             </span>
             <span className="sop-exec-summary-name">{r.actionName}</span>
           </div>

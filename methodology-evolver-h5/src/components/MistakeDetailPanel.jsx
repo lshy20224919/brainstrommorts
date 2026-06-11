@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../mock'
 import Loading from './Loading'
+import SensitiveText from './SensitiveText'
 
 export default function MistakeDetailPanel({ visible, mistake, category, onClose }) {
   const [relatedLaws, setRelatedLaws] = useState([])
@@ -42,7 +43,7 @@ export default function MistakeDetailPanel({ visible, mistake, category, onClose
                   <div className="action-detail-metric"><span className="label">主观权重</span><span className="value">{mistake.subjective_weight}</span></div>
                   <div className="action-detail-metric"><span className="label">状态</span><span className="value">{mistake.status === 0 ? '正常' : '已淘汰'}</span></div>
                 </div>
-                {mistake.remark && <div className="detail-remark">{mistake.remark}</div>}
+                {mistake.remark && <SensitiveText as="div" className="detail-remark" id={`mistake-remark-${mistake.id}`} value={mistake.remark} />}
               </div>
             </section>
 

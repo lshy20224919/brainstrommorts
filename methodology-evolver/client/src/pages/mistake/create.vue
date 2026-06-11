@@ -125,8 +125,10 @@
 
 <script>
 import api from '@/utils/api.js'
+import negativeWarning from '@/mixins/negativeWarning.js'
 
 export default {
+  mixins: [negativeWarning],
   data() {
     return {
       categories: [],
@@ -243,7 +245,10 @@ export default {
         uni.showToast({ title: '请填写必填项', icon: 'none' })
         return
       }
+      this.checkNegativeWarning(this.form.category_id, () => this.doSubmit())
+    },
 
+    async doSubmit() {
       try {
         await api.mistakes.create({
           name: this.form.name.trim(),

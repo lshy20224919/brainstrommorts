@@ -11,7 +11,8 @@
         <view class="law-type-badge" :class="{ positive: law.law_type === 1, negative: law.law_type === 2 }">
           {{ law.law_type === 1 ? '正向规律' : '负向规律' }}
         </view>
-        <text class="law-desc">{{ law.law_desc }}</text>
+        <text v-if="isSensitiveHidden('law-desc-' + law.law_id)" class="sensitive-mask" @tap.stop="revealSensitive('law-desc-' + law.law_id)">点击查看</text>
+        <text v-else class="law-desc">{{ law.law_desc }}</text>
         <view class="law-meta">
           <view class="meta-item">
             <text>📂</text>
@@ -72,7 +73,8 @@
               {{ record.verify_result === 1 ? '✓ 符合' : '✗ 不符合' }}
             </view>
             <view class="verify-content">
-              <text class="verify-remark" v-if="record.verify_remark">{{ record.verify_remark }}</text>
+              <text v-if="record.verify_remark && isSensitiveHidden('verify-' + record.record_id)" class="sensitive-mask" @tap.stop="revealSensitive('verify-' + record.record_id)">点击查看</text>
+              <text v-else-if="record.verify_remark" class="verify-remark">{{ record.verify_remark }}</text>
               <text class="verify-time">{{ formatTime(record.verify_time) }}</text>
             </view>
           </view>
@@ -131,8 +133,10 @@
 
 <script>
 import api from '@/utils/api.js'
+import sensitiveMixin from '@/mixins/sensitive.js'
 
 export default {
+  mixins: [sensitiveMixin],
   data() {
     return {
       loading: true,

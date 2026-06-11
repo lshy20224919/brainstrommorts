@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { CirclePlus, ShieldX, CircleCheck, TrendingUp, TrendingDown, Sparkles } from 'lucide-react'
+import { CirclePlus, ShieldX, CircleCheck, TrendingUp, TrendingDown, Sparkles, ClipboardList, Clock, FileEdit } from 'lucide-react'
 import { api } from '../mock'
 import { useToast } from '../components/Toast'
 import CheckinModal from '../components/CheckinModal'
@@ -12,6 +12,7 @@ import EvolutionJourney from '../components/EvolutionJourney'
 import SmartSuggestion from '../components/SmartSuggestion'
 import PostActionGuide from '../components/PostActionGuide'
 import Loading from '../components/Loading'
+import { buildDraftTodo, clearDrafts } from '../utils/drafts'
 
 function DataDashboard({ stats, onSwitchTab }) {
   if (!stats) return null
@@ -41,31 +42,6 @@ function DataDashboard({ stats, onSwitchTab }) {
   )
 }
 
-const DRAFT_KEYS = [
-  { key: 'draft_create_action', label: '正确的事' },
-  { key: 'draft_create_mistake', label: '错误的事' },
-  { key: 'draft_create_law', label: '规律' },
-  { key: 'draft_create_inspiration', label: '灵感' }
-]
-
-function DraftReminder({ onResume, onClear }) {
-  const [cleared, setCleared] = useState(false)
-  const drafts = DRAFT_KEYS.filter(({ key }) => {
-    try { const v = localStorage.getItem(key); return v && v !== '{}' && v !== 'null' } catch { return false }
-  })
-  if (cleared || drafts.length === 0) return null
-  return (
-    <div className="draft-reminder">
-      <div className="draft-reminder-body" onClick={() => onResume?.(drafts[0].key)}>
-        <span className="draft-reminder-icon">📝</span>
-        <span className="draft-reminder-text">您有 {drafts.length} 条未完成录入（{drafts.map(d => d.label).join('、')}）</span>
-        <span className="draft-reminder-action">继续填写 →</span>
-      </div>
-      <button className="draft-reminder-close" onClick={(e) => { e.stopPropagation(); onClear(); setCleared(true) }}>×</button>
-    </div>
-  )
-}
-
 function QuickActions({ onAddAction, onAddPositiveLaw, onAddNegativeLaw, onAddMistake, onCheckin, onAddInspiration }) {
   return (
     <div className="quick-actions">
@@ -79,21 +55,25 @@ function QuickActions({ onAddAction, onAddPositiveLaw, onAddNegativeLaw, onAddMi
   )
 }
 
-function TodoSection({ todos, onDismiss, onMigrateClick }) {
+function TodoSection({ todos, onDismiss, onMigrateClick, onResumeDraft, onClearDrafts }) {
   if (!todos || todos.length === 0) return null
   const renderTodo = (todo) => {
-    if (todo.type === 'review') return <span>📊 您有 <strong>{todo.count}</strong> 个正确的事待复盘</span>
-    if (todo.type === 'migrate') return <span>💡 今日有 <strong>{todo.count}</strong> 条迁移推荐</span>
-    if (todo.type === 'overdue') return <span>⏰ <strong>{todo.action.name}</strong> 已 {todo.days} 天未执行</span>
+    if (todo.type === 'draft') return <span><FileEdit size={14} className="todo-icon" /> 您有 <strong>{todo.count}</strong> 条未完成录入（{todo.drafts.map(d => d.label).join('、')}）<span className="todo-action">继续填写 →</span></span>
+    if (todo.type === 'review') return <span><ClipboardList size={14} className="todo-icon" /> 您有 <strong>{todo.count}</strong> 个正确的事待复盘</span>
+    if (todo.type === 'migrate') return <span><Sparkles size={14} className="todo-icon" /> 今日有 <strong>{todo.count}</strong> 条迁移推荐</span>
+    if (todo.type === 'overdue') return <span><Clock size={14} className="todo-icon" /> <strong>{todo.action.name}</strong> 已 {todo.days} 天未执行</span>
     return null
   }
   return (
     <div className="todo-section">
       <div className="section-title">待办提醒</div>
       {todos.map(todo => (
-        <div key={todo.key} className="todo-card" onClick={() => todo.type === 'migrate' && onMigrateClick?.()}>
+        <div key={todo.key} className="todo-card" data-type={todo.type} onClick={() => {
+          if (todo.type === 'migrate') onMigrateClick?.()
+          else if (todo.type === 'draft') onResumeDraft?.(todo.drafts[0].key)
+        }}>
           <div className="todo-content">{renderTodo(todo)}</div>
-          <button className="todo-dismiss" onClick={e => { e.stopPropagation(); onDismiss(todo.key) }}>×</button>
+          <button className="todo-dismiss" onClick={e => { e.stopPropagation(); todo.type === 'draft' ? onClearDrafts?.() : onDismiss(todo.key) }}>×</button>
         </div>
       ))}
     </div>
@@ -192,7 +172,8 @@ export default function HomePage({ onSwitchTab }) {
     const [stg, sug, t, cats, acts, lws, st] = await Promise.all([
       api.getEvolutionProgress(), api.getSmartSuggestion(), api.getTodos(), api.getCategories(), api.getActions({ status: 0 }), api.getLaws({ status: 0 }), api.getHomeStats()
     ])
-    setStages(stg); setSuggestion(sug); setTodos(t); setCategories(cats); setActions(acts); setLaws(lws); setStats(st); setLoading(false)
+    const draftTodo = buildDraftTodo(localStorage)
+    setStages(stg); setSuggestion(sug); setTodos(draftTodo ? [draftTodo, ...t] : t); setCategories(cats); setActions(acts); setLaws(lws); setStats(st); setLoading(false)
   }
 
   const handleDismiss = async (key) => { await api.dismissTodo(key); setTodos(prev => prev.filter(t => t.key !== key)) }
@@ -243,17 +224,22 @@ export default function HomePage({ onSwitchTab }) {
       </div>
       <div className="page-body">
         {loading ? <Loading rows={4} /> : (<>
-          <DataDashboard stats={stats} onSwitchTab={onSwitchTab} />
           <EvolutionJourney stages={stages} />
           <SmartSuggestion suggestion={suggestion} onAction={handleSuggestionAction} />
+          <DataDashboard stats={stats} onSwitchTab={onSwitchTab} />
           <QuickActions onAddAction={() => setModal('action')} onAddMistake={() => setModal('mistake')} onAddPositiveLaw={() => setModal('positive_law')} onAddNegativeLaw={() => setModal('negative_law')} onCheckin={() => setModal('checkin')} onAddInspiration={() => setModal('inspiration')} />
-          <DraftReminder onResume={(key) => {
-            if (key === 'draft_create_action') setModal('action')
-            else if (key === 'draft_create_mistake') setModal('mistake')
-            else if (key === 'draft_create_law') setModal('positive_law')
-            else if (key === 'draft_create_inspiration') setModal('inspiration')
-          }} onClear={() => { DRAFT_KEYS.forEach(({ key }) => localStorage.removeItem(key)) }} />
-          <TodoSection todos={todos} onDismiss={handleDismiss} onMigrateClick={handleMigrateClick} />
+          <TodoSection
+            todos={todos}
+            onDismiss={handleDismiss}
+            onMigrateClick={handleMigrateClick}
+            onResumeDraft={(key) => {
+              if (key === 'draft_create_action') setModal('action')
+              else if (key === 'draft_create_mistake') setModal('mistake')
+              else if (key === 'draft_create_law') setModal('positive_law')
+              else if (key === 'draft_create_inspiration') setModal('inspiration')
+            }}
+            onClearDrafts={() => { clearDrafts(localStorage); loadData() }}
+          />
           <RankSection categories={categories} onSwitchTab={onSwitchTab} />
         </>)}
       </div>

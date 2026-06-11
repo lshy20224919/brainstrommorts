@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import Modal from './Modal'
 import { useDraft } from '../hooks/useDraft'
 import { api } from '../mock'
@@ -77,7 +78,7 @@ export default function CreateMistakeModal({ visible, categories, laws, onClose,
       )}
       {warningLaws && (
         <div className="negative-law-warning">
-          <div className="negative-law-warning-title">⚠ 该分类下有负向规律提醒</div>
+          <div className="negative-law-warning-title"><AlertTriangle size={14} className="g-warning-icon" /> 该分类下有负向规律提醒</div>
           {warningLaws.map(l => (
             <div key={l.id} className="negative-law-warning-item">{l.law_desc}</div>
           ))}
