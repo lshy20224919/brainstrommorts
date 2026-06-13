@@ -33,7 +33,7 @@
 
 ### Phase 4: 提交
 
-- [ ] 4.1 [H5] commit "feat(h5): align inspiration _direction_inferred and sop is_auto_generated with miniapp"
+- [x] 4.1 [H5] commit "feat(h5): align inspiration _direction_inferred and sop is_auto_generated with miniapp" (2383b7a, pushed)
 
 ## 依赖关系
 
