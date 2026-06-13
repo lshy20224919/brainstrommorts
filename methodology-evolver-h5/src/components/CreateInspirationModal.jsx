@@ -21,7 +21,8 @@ export default function CreateInspirationModal({ visible, categories, onClose, o
       desc: desc.trim(),
       source: source || null,
       category_id: categoryId ? Number(categoryId) : null,
-      direction
+      direction,
+      ...(initial ? { _direction_inferred: false } : {})
     })
     if (draftKey) clearDraft()
   }

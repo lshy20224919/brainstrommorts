@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Pencil, Copy, Trash2, Check, X, Pin, Play } from 'lucide-react'
+import { Pencil, Copy, Trash2, Check, X, Pin, Play, Plus } from 'lucide-react'
 import { api } from '../mock'
 import SopExecSummary from '../components/SopExecSummary'
 import { useToast } from '../components/Toast'
@@ -367,7 +367,10 @@ function SopCard({ sop, category, onExec, onLongPress }) {
       onContextMenu={handleContextMenu}
     >
       <div className="sop-card-left">
-        <div className="sop-card-name">{sop.name}</div>
+        <div className="sop-card-name">
+          {sop.name}
+          {sop.is_auto_generated === 1 && <span className="sop-tag sop-tag-smart">智能</span>}
+        </div>
         <div className="sop-card-meta">{category?.name} · {formatLastExec(sop.last_exec_time)}</div>
       </div>
       <div className="sop-card-right">
@@ -495,7 +498,7 @@ export default function SopPage() {
         )}
       </div>
 
-      <button className="fab" onClick={() => setEditTarget(false)}>+</button>
+      <button className="fab" onClick={() => setEditTarget(false)} aria-label="新建 SOP"><Plus size={22} strokeWidth={2.5} /></button>
 
       {menuTarget && (
         <SopMenu

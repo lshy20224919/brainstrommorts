@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Check, Pencil, Pin, Archive, Trash2, Lightbulb, ClipboardList, Shuffle, Ban, CircleSlash } from 'lucide-react'
+import { Check, Pencil, Pin, Archive, Trash2, Lightbulb, ClipboardList, Shuffle, Ban, CircleSlash, Plus } from 'lucide-react'
 import { api } from '../mock'
 import { useToast } from '../components/Toast'
 import ActionSheet from '../components/ActionSheet'
@@ -183,8 +183,31 @@ export default function CardLibPage({ initParams }) {
     })
   }
   const openInspirationSheet = (insp) => {
+    const inferred = insp._direction_inferred === true
+    const oppositeDir = insp.direction === 'positive' ? 'negative' : 'positive'
+    const oppositeLabel = oppositeDir === 'positive' ? '正向' : '负向'
+    const currentLabel = insp.direction === 'positive' ? '正向' : '负向'
+    const confirmAction = {
+      icon: <Check size={16} />,
+      label: `确认为${currentLabel}`,
+      onClick: async () => {
+        await api.updateInspiration(insp.id, { _direction_inferred: false })
+        loadInspirations()
+        toast.success('已确认方向')
+      }
+    }
+    const flipAction = {
+      icon: <Shuffle size={16} />,
+      label: `改为${oppositeLabel}灵感`,
+      onClick: async () => {
+        await api.updateInspiration(insp.id, { direction: oppositeDir, _direction_inferred: false })
+        loadInspirations()
+        toast.success(`已改为${oppositeLabel}`)
+      }
+    }
     setActionSheet({
       actions: [
+        ...(inferred ? [confirmAction, flipAction] : [flipAction]),
         { icon: <Check size={16} />, label: '转为正确的事', onClick: async () => { await api.convertInspiration(insp.id, 'action'); loadInspirations(); setActionSheet(null); setEditActionTarget({ name: insp.desc, category_id: insp.category_id }) } },
         { icon: <CircleSlash size={16} />, label: '转为错误的事', onClick: async () => { await api.convertInspiration(insp.id, 'mistake'); loadInspirations(); setActionSheet(null); setEditMistakeTarget({ name: insp.desc, category_id: insp.category_id }) } },
         { icon: <Lightbulb size={16} />, label: '转为规律', onClick: async () => { await api.convertInspiration(insp.id, 'law'); loadInspirations(); setActionSheet(null); setEditLawTarget({ law_desc: insp.desc, category_id: insp.category_id }) } },
@@ -257,7 +280,10 @@ export default function CardLibPage({ initParams }) {
       if (list.length === 0) return <div className="empty-state"><span className="empty-icon"><Lightbulb size={28} /></span><span className="empty-text">暂无{dir === 'positive' ? '正向' : '负向'}灵感</span></div>
       return list.map(insp => {
         const cat = getCategory(insp.category_id)
-        return <UnifiedCard key={insp.id} title={<SensitiveText id={`insp-${insp.id}`} value={insp.desc} />} meta={<>{cat?.name || ''}{insp.source ? ` · ${insp.source}` : ''}</>} data={new Date(insp.created_time).toLocaleDateString()} borderColor={dir === 'positive' ? 'var(--accent)' : '#A78BFA'} onClick={() => setDetailInspiration(insp)} onLongPress={() => openInspirationSheet(insp)} />
+        const inferred = insp._direction_inferred === true
+        const badge = inferred ? '待确认方向' : (insp.direction === 'positive' ? '正向' : '负向')
+        const badgeClass = inferred ? 'badge-inferred' : (insp.direction === 'positive' ? 'badge-positive' : 'badge-negative')
+        return <UnifiedCard key={insp.id} title={<SensitiveText id={`insp-${insp.id}`} value={insp.desc} />} badge={badge} badgeClass={badgeClass} meta={<>{cat?.name || ''}{insp.source ? ` · ${insp.source}` : ''}</>} data={new Date(insp.created_time).toLocaleDateString()} borderColor={dir === 'positive' ? 'var(--accent)' : '#A78BFA'} onClick={() => setDetailInspiration(insp)} onLongPress={() => openInspirationSheet(insp)} />
       })
     }
   }
@@ -317,7 +343,7 @@ export default function CardLibPage({ initParams }) {
       <div className="card-list">{renderCards()}</div>
 
       {/* FAB */}
-      <button className="fab" onClick={handleFabClick}>+</button>
+      <button className="fab" onClick={handleFabClick} aria-label="新建"><Plus size={22} strokeWidth={2.5} /></button>
 
       {/* Modals */}
       <ActionSheet visible={!!actionSheet} actions={actionSheet?.actions || []} onClose={() => setActionSheet(null)} />
