@@ -72,7 +72,7 @@
 
     <!-- 悬浮新增按钮 -->
     <view class="fab" @tap="goToCreate">
-      <text class="fab-icon">+</text>
+      <app-icon name="plus" :size="24" color="#FFFFFF" />
     </view>
 
     <!-- 操作菜单 -->
@@ -543,7 +543,7 @@ export default {
   align-items: center;
   justify-content: center;
   box-shadow: 0 4rpx 20rpx rgba(22, 34, 56, 0.3);
-  .fab-icon { font-size: 48rpx; color: #ffffff; font-weight: bold; }
+  .fab-icon { font-size: 48rpx; line-height: 1; color: #ffffff; font-weight: bold; }
 }
 
 .modal {

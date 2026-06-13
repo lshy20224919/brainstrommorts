@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Flame } from 'lucide-react'
+import { Flame, Plus } from 'lucide-react'
 import { api } from '../mock'
 import SensitiveText from '../components/SensitiveText'
 
@@ -760,7 +760,7 @@ export default function ReviewPage() {
         <RetiredSection onViewAll={() => setShowRetiredFull(true)} />
       </div>
 
-      <button className="fab" onClick={() => setShowCreateModal(true)}>+</button>
+      <button className="fab" onClick={() => setShowCreateModal(true)} aria-label="新建复盘"><Plus size={22} strokeWidth={2.5} /></button>
       {showCreateModal && <ReviewCreateModal onClose={() => setShowCreateModal(false)} onCreate={handleCreateReview} />}
     </div>
   )

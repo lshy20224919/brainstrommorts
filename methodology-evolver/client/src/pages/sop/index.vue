@@ -37,15 +37,17 @@
 
     <!-- 悬浮新增按钮 -->
     <view class="fab" @tap="goToCreate">
-      <text class="fab-icon">+</text>
+      <app-icon name="plus" :size="24" color="#FFFFFF" />
     </view>
   </view>
 </template>
 
 <script>
 import api from '@/utils/api.js'
+import AppIcon from '@/components/icon.vue'
 
 export default {
+  components: { AppIcon },
   data() {
     return {
       loading: false,
@@ -181,6 +183,7 @@ export default {
 
   .fab-icon {
     font-size: 48rpx;
+    line-height: 1;
     color: #ffffff;
     font-weight: bold;
   }
